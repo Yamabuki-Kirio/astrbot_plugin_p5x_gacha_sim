@@ -87,10 +87,30 @@ git clone https://github.com/Yamabuki-Kirio/astrbot_plugin_p5x_gacha_sim.git dat
 见 [`assets/README.md`](assets/README.md)。往 `assets/portraits/` 丢图即可，不用改代码。
 缺哪些图：`python tools/report_coverage.py`。
 
+**人格面具目前没有立绘**，渲染时会统一画成「犄角 + 长袍」的暗色剪影并带上稀有度描边，
+不是错误地拿角色图顶替。补齐 `data/asset_index.json` 里对应 `persona:*` 的图片路径即可自动启用。
+
+## 结果页渲染
+
+十连/单抽结果页按游戏内截图还原（`tools/fixtures/gacha_reference.jpg`）：
+
+- 10 条统一倾角、高低错落的色带，相邻结果互相遮压；
+- 5★ 深蓝底 + 背后红眼蓝影 + 前凸立绘 + 底部星芒，并压在相邻结果之上；
+- 色带底部：奖励图标（契约道具）与数量、稀有度圆形徽记（低星按位置轮换 4 种纹样）；
+- 顶部资源栏、NEW 贴纸、相机与右下分享按钮；**不画 UP 角标**（截图里没有）。
+
+改动渲染后可以这样并排对照：
+
+```bash
+python tools/render_demo.py --multi5      # 出 4 张：十连、单抽、多 5★/4★、武器十连、全低星
+python tools/render_compare.py            # 参考截图 vs 当前出图 -> output/compare_reference.png
+python tools/render_compare.py output/demo_multi_star.jpg   # 也可以指定别的图
+```
+
 ## 开发
 
 ```bash
-python -m pytest tests -q                 # 23 个测试
+python -m pytest tests -q                 # 36 个测试（含渲染层）
 python tools/build_dataset.py             # 从 p5x-data-crawler 重新生成角色/武器
 python tools/build_banners.py             # 重新生成卡池配置
 python tools/simulate.py --runs 20000     # 蒙特卡洛校验概率
@@ -100,6 +120,8 @@ python tools/render_demo.py               # 出不带 AstrBot 的结果图
 ## 已知限制
 
 - 人格面具 2★/3★ 与 3★ 武器是 **占位数据**，上线前必须替换。
+- 人格面具**没有立绘**，结果页统一使用剪影占位；5★ 背后的蓝色身影也是形状概括，不是原版 Persona 素材。
+- 结果页的版面/配色/图层按参考截图还原，但卡片里的立绘来自本项目素材库，**与截图中的官方立绘不同**，因此不追求逐像素一致。
 - 3★:2★ 的拆分官方未公示，当前按 3% : 90% 推断。
 - 未在真实 AstrBot 宿主内跑过消息管线（仅做了机制与持久化测试）。
 - 还没有管理页面，改池子要改 JSON。

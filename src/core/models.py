@@ -18,6 +18,21 @@ KIND_LABEL = {
     "persona": "人格面具",
 }
 
+# id 前缀到物品类别的映射：``personas.json`` / ``weapons.json`` 里没有 ``kind`` 字段，
+# 只靠默认值会把人格面具误判成角色，导致渲染时按角色规则放图。
+KIND_BY_PREFIX = {
+    "char": "character",
+    "weapon": "weapon",
+    "persona": "persona",
+}
+
+
+def _kind_of(item_id: str, declared: Any = None) -> str:
+    if declared:
+        return str(declared)
+    prefix = item_id.split(":", 1)[0].casefold()
+    return KIND_BY_PREFIX.get(prefix, "character")
+
 
 @dataclass(frozen=True)
 class Item:
@@ -51,10 +66,11 @@ class Item:
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "Item":
+        item_id = str(data["id"])
         return cls(
-            id=str(data["id"]),
+            id=item_id,
             name=str(data["name"]),
-            kind=str(data.get("kind", "character")),
+            kind=_kind_of(item_id, data.get("kind")),
             rarity=int(data["rarity"]),
             element=str(data.get("element", "")),
             limited=bool(data.get("limited", False)),

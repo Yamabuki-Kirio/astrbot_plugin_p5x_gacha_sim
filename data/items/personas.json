@@ -1,0 +1,196 @@
+{
+  "_comment": "⚠ 占位数据：2★ / 3★ 人格面具候选池。官方日文站只写「2〜3★ ペルソナ 93%」，没有公布 3★:2★ 拆分与完整名单，这里的名字仅用于让抽卡跑通，正式发布前必须用游戏内实数替换。",
+  "items": [
+    {
+      "id": "persona:metatron",
+      "name": "梅塔特隆",
+      "rarity": 3
+    },
+    {
+      "id": "persona:lucifer",
+      "name": "路西法",
+      "rarity": 3
+    },
+    {
+      "id": "persona:michael",
+      "name": "米迦勒",
+      "rarity": 3
+    },
+    {
+      "id": "persona:satan",
+      "name": "撒旦",
+      "rarity": 3
+    },
+    {
+      "id": "persona:beelzebub",
+      "name": "别西卜",
+      "rarity": 3
+    },
+    {
+      "id": "persona:baal",
+      "name": "巴力",
+      "rarity": 3
+    },
+    {
+      "id": "persona:trumpeter",
+      "name": "吹号者",
+      "rarity": 3
+    },
+    {
+      "id": "persona:asterius",
+      "name": "阿斯忒里俄斯",
+      "rarity": 3
+    },
+    {
+      "id": "persona:seiten-taisei",
+      "name": "齐天大圣",
+      "rarity": 3
+    },
+    {
+      "id": "persona:susano-o",
+      "name": "素盏鸣尊",
+      "rarity": 3
+    },
+    {
+      "id": "persona:astaroth",
+      "name": "亚斯塔禄",
+      "rarity": 3
+    },
+    {
+      "id": "persona:orpheus",
+      "name": "俄耳甫斯",
+      "rarity": 3
+    },
+    {
+      "id": "persona:pixie",
+      "name": "皮克西",
+      "rarity": 2
+    },
+    {
+      "id": "persona:jack-o-lantern",
+      "name": "杰克灯笼",
+      "rarity": 2
+    },
+    {
+      "id": "persona:jack-frost",
+      "name": "杰克霜精",
+      "rarity": 2
+    },
+    {
+      "id": "persona:mandrake",
+      "name": "曼陀罗草",
+      "rarity": 2
+    },
+    {
+      "id": "persona:agathion",
+      "name": "阿加席恩",
+      "rarity": 2
+    },
+    {
+      "id": "persona:bicorn",
+      "name": "双角兽",
+      "rarity": 2
+    },
+    {
+      "id": "persona:slime",
+      "name": "史莱姆",
+      "rarity": 2
+    },
+    {
+      "id": "persona:poltergeist",
+      "name": "骚灵",
+      "rarity": 2
+    },
+    {
+      "id": "persona:salamander",
+      "name": "沙罗曼蛇",
+      "rarity": 2
+    },
+    {
+      "id": "persona:undine",
+      "name": "温蒂妮",
+      "rarity": 2
+    },
+    {
+      "id": "persona:sylph",
+      "name": "西尔芙",
+      "rarity": 2
+    },
+    {
+      "id": "persona:knocker",
+      "name": "诺克",
+      "rarity": 2
+    },
+    {
+      "id": "persona:apsaras",
+      "name": "阿普萨拉斯",
+      "rarity": 2
+    },
+    {
+      "id": "persona:oni",
+      "name": "鬼",
+      "rarity": 2
+    },
+    {
+      "id": "persona:shiki-ouji",
+      "name": "式王子",
+      "rarity": 2
+    },
+    {
+      "id": "persona:makami",
+      "name": "真神",
+      "rarity": 2
+    },
+    {
+      "id": "persona:nekomata",
+      "name": "猫又",
+      "rarity": 2
+    },
+    {
+      "id": "persona:kikuri-hime",
+      "name": "菊理媛",
+      "rarity": 2
+    },
+    {
+      "id": "persona:take-minakata",
+      "name": "建御名方",
+      "rarity": 2
+    },
+    {
+      "id": "persona:arachne",
+      "name": "阿拉克涅",
+      "rarity": 2
+    },
+    {
+      "id": "persona:heiress",
+      "name": "女继承人",
+      "rarity": 2
+    },
+    {
+      "id": "persona:high-pixie",
+      "name": "高等皮克西",
+      "rarity": 2
+    },
+    {
+      "id": "persona:succubus",
+      "name": "魅魔",
+      "rarity": 2
+    },
+    {
+      "id": "persona:incubus",
+      "name": "梦魔",
+      "rarity": 2
+    },
+    {
+      "id": "persona:archangel",
+      "name": "大天使",
+      "rarity": 2
+    },
+    {
+      "id": "persona:angel",
+      "name": "天使",
+      "rarity": 2
+    }
+  ],
+  "status": "placeholder"
+}

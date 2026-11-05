@@ -1,0 +1,98 @@
+[
+  {
+    "id": "weapon3:0",
+    "name": "制式短剑",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "物理",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:1",
+    "name": "制式长枪",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "枪击",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:2",
+    "name": "制式手斧",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "物理",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:3",
+    "name": "制式双刃",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "物理",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:4",
+    "name": "制式拳套",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "物理",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:5",
+    "name": "制式手枪",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "枪击",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:6",
+    "name": "制式长弓",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "枪击",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:7",
+    "name": "制式法杖",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "念动",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:8",
+    "name": "制式太刀",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "物理",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:9",
+    "name": "制式铁球",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "物理",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:10",
+    "name": "制式锁链",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "物理",
+    "status": "placeholder"
+  },
+  {
+    "id": "weapon3:11",
+    "name": "制式音叉",
+    "rarity": 3,
+    "kind": "weapon",
+    "element": "祝福",
+    "status": "placeholder"
+  }
+]

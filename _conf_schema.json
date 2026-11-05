@@ -1,0 +1,26 @@
+{
+  "enable_rendering": {
+    "description": "是否发送抽卡结果图片",
+    "type": "bool",
+    "hint": "关闭后只发文字，省 CPU；缺立绘时也会自动退化为占位图",
+    "default": true
+  },
+  "enable_history_recording": {
+    "description": "是否记录抽卡历史",
+    "type": "bool",
+    "hint": "关闭后仍会保存保底状态，只是不写历史记录",
+    "default": true
+  },
+  "default_banner": {
+    "description": "默认卡池",
+    "type": "string",
+    "hint": "用户没执行 /p5x 选择 时使用的卡池 id，例如 char_limited；留空则用第一个启用卡池",
+    "default": "char_limited"
+  },
+  "font_path": {
+    "description": "中文字体路径",
+    "type": "string",
+    "hint": "留空自动查找系统字体（Windows 优先 msyhbd.ttc）",
+    "default": ""
+  }
+}

@@ -1,0 +1,982 @@
+[
+  {
+    "id": "weapon:NAVI-weapon5-1",
+    "name": "HACK专业型",
+    "rarity": 5,
+    "owner": "佐仓双叶",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CHORD-weapon5-1",
+    "name": "万众瞩目之星",
+    "rarity": 5,
+    "owner": "坂井绫香",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:AEGIS-weapon5-1",
+    "name": "万魔枪",
+    "rarity": 5,
+    "owner": "埃癸斯",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MARIAN·Beachflower-weapon5-1",
+    "name": "不凋之庭",
+    "rarity": 5,
+    "owner": "宫下美波·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:JOKER-weapon5-1",
+    "name": "不死鸟",
+    "rarity": 5,
+    "owner": "雨宫莲",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:SEPIA-weapon5-1",
+    "name": "亡语圣裁",
+    "rarity": 5,
+    "owner": "须见俊也",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:KEY-weapon5-1",
+    "name": "光之洗礼",
+    "rarity": 5,
+    "owner": "黑谷清",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:RIN-weapon5-1",
+    "name": "八荒一念",
+    "rarity": 5,
+    "owner": "李瑶铃",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MONT-weapon5-1",
+    "name": "凛冬女王",
+    "rarity": 5,
+    "owner": "琴音·蒙塔涅",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:FLEURET-weapon5-1",
+    "name": "启明之星",
+    "rarity": 5,
+    "owner": "白鸟诚司",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:KOROMARU-weapon5-1",
+    "name": "咆哮",
+    "rarity": 5,
+    "owner": "虎狼丸",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BERRY-weapon5-1",
+    "name": "咒言魔偶",
+    "rarity": 5,
+    "owner": "鹿野莓",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:KIRIJO-weapon5-1",
+    "name": "圣枪朗基努斯",
+    "rarity": 5,
+    "owner": "桐条美鹤",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:SOY·Pioneer-weapon5-1",
+    "name": "圣马角信标",
+    "rarity": 5,
+    "owner": "加纳骏·拓荒",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:SKULL-weapon5-1",
+    "name": "复仇者的尖齿",
+    "rarity": 5,
+    "owner": "坂本龙司",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:OKYANN-weapon5-1",
+    "name": "复古迪斯科:P",
+    "rarity": 5,
+    "owner": "富山佳代",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MARIAN-weapon5-1",
+    "name": "天使之心",
+    "rarity": 5,
+    "owner": "宫下美波",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CROW-weapon5-1",
+    "name": "天炽神心",
+    "rarity": 5,
+    "owner": "明智吾郎",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:ANGE-weapon5-1",
+    "name": "天籁轻吟",
+    "rarity": 5,
+    "owner": "长尾爱歌",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MONT·Frostgale-weapon5-1",
+    "name": "天鹅梦乡",
+    "rarity": 5,
+    "owner": "琴音 蒙塔涅·漫舞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:SOY-weapon5-1",
+    "name": "始祖冰河",
+    "rarity": 5,
+    "owner": "加纳骏",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:KOTONE-weapon5-1",
+    "name": "孔雀御前・改",
+    "rarity": 5,
+    "owner": "汐见琴音",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:HOWLER-weapon5-1",
+    "name": "家宅恶犬",
+    "rarity": 5,
+    "owner": "道玄坂琉七",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MIKU-weapon5-1",
+    "name": "寰宇回响",
+    "rarity": 5,
+    "owner": "初音未来",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:JUNPEI-weapon5-1",
+    "name": "巴鲁姆克",
+    "rarity": 5,
+    "owner": "伊织顺平",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PUPPET-weapon5-1",
+    "name": "幻梦泡影",
+    "rarity": 5,
+    "owner": "佐原海夕",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:YUKI-weapon5-1",
+    "name": "归净乐土",
+    "rarity": 5,
+    "owner": "藤川雪实",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:WIND-weapon5-1",
+    "name": "忍具·天与刃翼",
+    "rarity": 5,
+    "owner": "多祢村理子",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BERRY·Summer-weapon5-1",
+    "name": "恋海追航者",
+    "rarity": 5,
+    "owner": "鹿野莓·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PHOEBE-weapon5-1",
+    "name": "月下翎",
+    "rarity": 5,
+    "owner": "椎名悠美",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:QUEEN-weapon5-1",
+    "name": "核热终结",
+    "rarity": 5,
+    "owner": "新岛真",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MOKO·Seaside-weapon5-1",
+    "name": "波子宝贝",
+    "rarity": 5,
+    "owner": "野毛朋子·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:WIND·Tempest-weapon5-1",
+    "name": "浮香·鹤舞凌冬",
+    "rarity": 5,
+    "owner": "多祢村理子·未央",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CHORD·Summer-weapon5-1",
+    "name": "海色余音",
+    "rarity": 5,
+    "owner": "坂井绫香·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PUPPET·Wavecatcher-weapon5-1",
+    "name": "游梦人鱼",
+    "rarity": 5,
+    "owner": "佐原海夕·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:RIN·Firecracker-weapon5-1",
+    "name": "灼灼春晖",
+    "rarity": 5,
+    "owner": "李瑶铃·太平乐",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:JOKER·Starlight-weapon5-1",
+    "name": "爵士锋刃",
+    "rarity": 5,
+    "owner": "雨宫莲·星舞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PANTHER-weapon5-1",
+    "name": "玫瑰之棘",
+    "rarity": 5,
+    "owner": "高卷杏",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:RIDDLE-weapon5-1",
+    "name": "甜蜜礼物",
+    "rarity": 5,
+    "owner": "西森阳菜",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CLOSER-weapon5-1",
+    "name": "电磁类星体",
+    "rarity": 5,
+    "owner": "新井素羽",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:LUCE-weapon5-1",
+    "name": "白夜星谕",
+    "rarity": 5,
+    "owner": "池波星辉",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:LEON-weapon5-1",
+    "name": "破碎毁灭者MR",
+    "rarity": 5,
+    "owner": "神山岭央",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MAKOTO-weapon5-1",
+    "name": "神之剑",
+    "rarity": 5,
+    "owner": "结城理",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:NOIR-weapon5-1",
+    "name": "神圣战歌",
+    "rarity": 5,
+    "owner": "奥村春",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CHERISH-weapon5-1",
+    "name": "神圣誓约",
+    "rarity": 5,
+    "owner": "芦谷真咲",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CATTLE-weapon5-1",
+    "name": "神降光辉",
+    "rarity": 5,
+    "owner": "路菲尔",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MONA·Starlight-weapon5-1",
+    "name": "糖果狂欢者",
+    "rarity": 5,
+    "owner": "摩尔加纳星舞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MOKO-weapon5-1",
+    "name": "织梦者",
+    "rarity": 5,
+    "owner": "野毛朋子",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CLOSER·Tropical-weapon5-1",
+    "name": "缤纷海岸",
+    "rarity": 5,
+    "owner": "新井素羽·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:J&C-weapon5-1",
+    "name": "群青的审判",
+    "rarity": 5,
+    "owner": "芮丝汀娜&卡萝莉娜",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:TURBO-weapon5-1",
+    "name": "胜利宣言",
+    "rarity": 5,
+    "owner": "桥本麻由美",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PANTHER·Starlight-weapon5-1",
+    "name": "致命涂装",
+    "rarity": 5,
+    "owner": "高卷杏·星舞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:YUKARI-weapon5-1",
+    "name": "萨伦伽",
+    "rarity": 5,
+    "owner": "岳羽由加莉",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:AKIHIKO-weapon5-1",
+    "name": "萨巴兹乌斯",
+    "rarity": 5,
+    "owner": "真田明彦",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BUI-weapon5-1",
+    "name": "虚拟干扰者",
+    "rarity": 5,
+    "owner": "YUI",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:FUKA-weapon5-1",
+    "name": "虹音传导器",
+    "rarity": 5,
+    "owner": "山岸风花",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MESSA-weapon5-1",
+    "name": "血色编织",
+    "rarity": 5,
+    "owner": "北里基良",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:LUCE·Notte-weapon5-1",
+    "name": "诸神王庭",
+    "rarity": 5,
+    "owner": "池波星辉·永夜",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:VINO-weapon5-1",
+    "name": "超频脉冲",
+    "rarity": 5,
+    "owner": "长尾千津子",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CLOSER·Radiance-weapon5-1",
+    "name": "远征的先驱者号",
+    "rarity": 5,
+    "owner": "新井素羽·晴光",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:FOX-weapon5-1",
+    "name": "金纹影切",
+    "rarity": 5,
+    "owner": "喜多川祐介",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:VIOLET-weapon5-1",
+    "name": "金色晨曦",
+    "rarity": 5,
+    "owner": "芳泽霞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BLITZ-weapon5-1",
+    "name": "铁誓狼骑",
+    "rarity": 5,
+    "owner": "片山久未",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MATOI-weapon5-1",
+    "name": "镇炎璃叉",
+    "rarity": 5,
+    "owner": "夏川澪",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:ANRI-weapon5-1",
+    "name": "镜中双影",
+    "rarity": 5,
+    "owner": "平野亚兰",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PINKY-weapon5-1",
+    "name": "霜糖安可",
+    "rarity": 5,
+    "owner": "梨本成瑠海",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BUI·Cosmic-weapon5-1",
+    "name": "飞越深空之船",
+    "rarity": 5,
+    "owner": "YUI·幻彩",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MONA-weapon5-1",
+    "name": "黄金战利品",
+    "rarity": 5,
+    "owner": "摩尔加纳",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:NAVI-weapon4-1",
+    "name": "C型号便携式",
+    "rarity": 4,
+    "owner": "佐仓双叶",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:FUKA-weapon4-1",
+    "name": "D型通讯装置",
+    "rarity": 4,
+    "owner": "山岸风花",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:YUKI-weapon4-1",
+    "name": "万宝重击",
+    "rarity": 4,
+    "owner": "藤川雪实",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CHERISH-weapon4-1",
+    "name": "不灭荣光",
+    "rarity": 4,
+    "owner": "芦谷真咲",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BLITZ-weapon4-1",
+    "name": "伏特赤心",
+    "rarity": 4,
+    "owner": "片山久未",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:LUCE·Notte-weapon4-1",
+    "name": "众王之意志",
+    "rarity": 4,
+    "owner": "池波星辉·永夜",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:J&C-weapon4-1",
+    "name": "刚毅的使者",
+    "rarity": 4,
+    "owner": "芮丝汀娜&卡萝莉娜",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MONT·Frostgale-weapon4-1",
+    "name": "北风之女",
+    "rarity": 4,
+    "owner": "琴音 蒙塔涅·漫舞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MARIAN·Beachflower-weapon4-1",
+    "name": "午后茶语",
+    "rarity": 4,
+    "owner": "宫下美波·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MAKOTO-weapon4-1",
+    "name": "名刀透彻",
+    "rarity": 4,
+    "owner": "结城理",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:HOWLER-weapon4-1",
+    "name": "咆哮猎手",
+    "rarity": 4,
+    "owner": "道玄坂琉七",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CLOSER·Tropical-weapon4-1",
+    "name": "嘟嘟星",
+    "rarity": 4,
+    "owner": "新井素羽·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:SOY-weapon4-1",
+    "name": "噬魔",
+    "rarity": 4,
+    "owner": "加纳骏",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:RIN-weapon4-1",
+    "name": "四时万物",
+    "rarity": 4,
+    "owner": "李瑶铃",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:JUNPEI-weapon4-1",
+    "name": "圣灵之剑",
+    "rarity": 4,
+    "owner": "伊织顺平",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:LUCE-weapon4-1",
+    "name": "圣誓加冕",
+    "rarity": 4,
+    "owner": "池波星辉",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:AKIHIKO-weapon4-1",
+    "name": "地狱棘拳套",
+    "rarity": 4,
+    "owner": "真田明彦",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:NOIR-weapon4-1",
+    "name": "基加美修战斧",
+    "rarity": 4,
+    "owner": "奥村春",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:KOTONE-weapon4-1",
+    "name": "天沼矛",
+    "rarity": 4,
+    "owner": "汐见琴音",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:KOROMARU-weapon4-1",
+    "name": "守护短刀",
+    "rarity": 4,
+    "owner": "虎狼丸",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:FOX-weapon4-1",
+    "name": "居合刀",
+    "rarity": 4,
+    "owner": "喜多川祐介",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:JOKER·Starlight-weapon4-1",
+    "name": "巴塞拉德短剑",
+    "rarity": 4,
+    "owner": "雨宫莲·星舞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:LUCE-weapon4-2",
+    "name": "幻幕迭生",
+    "rarity": 4,
+    "owner": "池波星辉",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PANTHER-weapon4-1",
+    "name": "幻象鞭",
+    "rarity": 4,
+    "owner": "高卷杏",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:JOKER-weapon4-1",
+    "name": "开山刀",
+    "rarity": 4,
+    "owner": "雨宫莲",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:TURBO-weapon4-1",
+    "name": "开路先锋",
+    "rarity": 4,
+    "owner": "桥本麻由美",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MOKO-weapon4-1",
+    "name": "影舞双冠",
+    "rarity": 4,
+    "owner": "野毛朋子",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:FLEURET-weapon4-1",
+    "name": "授勋之证",
+    "rarity": 4,
+    "owner": "白鸟诚司",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:KEY-weapon4-1",
+    "name": "摇曳流火",
+    "rarity": 4,
+    "owner": "黑谷清",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MONA-weapon4-1",
+    "name": "新月刀",
+    "rarity": 4,
+    "owner": "摩尔加纳",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MESSA-weapon4-1",
+    "name": "无尽灰烬",
+    "rarity": 4,
+    "owner": "北里基良",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CLOSER·Radiance-weapon4-1",
+    "name": "日轮统治者",
+    "rarity": 4,
+    "owner": "新井素羽·晴光",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PHOEBE-weapon4-1",
+    "name": "星夜卜者",
+    "rarity": 4,
+    "owner": "椎名悠美",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:WIND·Tempest-weapon4-1",
+    "name": "晴日惊雀",
+    "rarity": 4,
+    "owner": "多祢村理子·未央",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:LEON-weapon4-1",
+    "name": "最强战戟X",
+    "rarity": 4,
+    "owner": "神山岭央",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:ANRI-weapon4-1",
+    "name": "最终清算",
+    "rarity": 4,
+    "owner": "平野亚兰",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BUI-weapon4-1",
+    "name": "未来指令",
+    "rarity": 4,
+    "owner": "YUI",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:ANGE-weapon4-1",
+    "name": "歌者绮梦",
+    "rarity": 4,
+    "owner": "长尾爱歌",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:RIDDLE-weapon4-1",
+    "name": "毛茸啾",
+    "rarity": 4,
+    "owner": "西森阳菜",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MATOI-weapon4-1",
+    "name": "水渊之刺",
+    "rarity": 4,
+    "owner": "夏川澪",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PUPPET-weapon4-1",
+    "name": "海域声呐",
+    "rarity": 4,
+    "owner": "佐原海夕",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PUPPET·Wavecatcher-weapon4-1",
+    "name": "海月晴空",
+    "rarity": 4,
+    "owner": "佐原海夕·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BERRY·Summer-weapon4-1",
+    "name": "溯光之链",
+    "rarity": 4,
+    "owner": "鹿野莓·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MOKO·Seaside-weapon4-1",
+    "name": "潮汐之语",
+    "rarity": 4,
+    "owner": "野毛朋子·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MIKU-weapon4-1",
+    "name": "潮流世界",
+    "rarity": 4,
+    "owner": "初音未来",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CATTLE-weapon4-1",
+    "name": "熔岩之火",
+    "rarity": 4,
+    "owner": "路菲尔",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CHORD-weapon4-1",
+    "name": "独唱摇滚",
+    "rarity": 4,
+    "owner": "坂井绫香",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MONA-weapon4-2",
+    "name": "猎头勺",
+    "rarity": 4,
+    "owner": "摩尔加纳",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:SEPIA-weapon4-1",
+    "name": "猩红仪杖",
+    "rarity": 4,
+    "owner": "须见俊也",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:KIRIJO-weapon4-1",
+    "name": "玫瑰焰形剑",
+    "rarity": 4,
+    "owner": "桐条美鹤",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:RIN·Firecracker-weapon4-1",
+    "name": "瑞雪红妆",
+    "rarity": 4,
+    "owner": "李瑶铃·太平乐",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MARIAN-weapon4-1",
+    "name": "生命颂歌",
+    "rarity": 4,
+    "owner": "宫下美波",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PANTHER·Starlight-weapon4-1",
+    "name": "痛楚之畏",
+    "rarity": 4,
+    "owner": "高卷杏·星舞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:SKULL-weapon4-1",
+    "name": "盖亚镇压者",
+    "rarity": 4,
+    "owner": "坂本龙司",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CLOSER-weapon4-1",
+    "name": "罪与罚",
+    "rarity": 4,
+    "owner": "新井素羽",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:AEGIS-weapon4-1",
+    "name": "自由基步枪",
+    "rarity": 4,
+    "owner": "埃癸斯",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:VINO-weapon4-1",
+    "name": "航域引力",
+    "rarity": 4,
+    "owner": "长尾千津子",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:WIND-weapon4-2",
+    "name": "花见绯梅",
+    "rarity": 4,
+    "owner": "多祢村理子",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:SOY·Pioneer-weapon4-1",
+    "name": "荒野处决",
+    "rarity": 4,
+    "owner": "加纳骏·拓荒",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:OKYANN-weapon4-1",
+    "name": "荧色魅惑D4u",
+    "rarity": 4,
+    "owner": "富山佳代",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BUI·Cosmic-weapon4-1",
+    "name": "薯薯奇航",
+    "rarity": 4,
+    "owner": "YUI·幻彩",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BERRY-weapon4-1",
+    "name": "血誓情书",
+    "rarity": 4,
+    "owner": "鹿野莓",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:VIOLET-weapon4-1",
+    "name": "西奈神剑",
+    "rarity": 4,
+    "owner": "芳泽霞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MONA·Starlight-weapon4-1",
+    "name": "重型军刀",
+    "rarity": 4,
+    "owner": "摩尔加纳星舞",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:PINKY-weapon4-1",
+    "name": "闪耀节奏",
+    "rarity": 4,
+    "owner": "梨本成瑠海",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:WIND-weapon4-1",
+    "name": "霁月银勾",
+    "rarity": 4,
+    "owner": "多祢村理子",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CROW-weapon4-1",
+    "name": "青沼光剑",
+    "rarity": 4,
+    "owner": "明智吾郎",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:CHORD·Summer-weapon4-1",
+    "name": "风吟潮声",
+    "rarity": 4,
+    "owner": "坂井绫香·夏日",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:QUEEN-weapon4-1",
+    "name": "马赫拳套",
+    "rarity": 4,
+    "owner": "新岛真",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:YUKARI-weapon4-1",
+    "name": "鬼神之弓",
+    "rarity": 4,
+    "owner": "岳羽由加莉",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:MONT-weapon4-1",
+    "name": "鸣空长歌",
+    "rarity": 4,
+    "owner": "琴音·蒙塔涅",
+    "status": "verified"
+  },
+  {
+    "id": "weapon:BLITZ-weapon3-1",
+    "name": "作战靴",
+    "rarity": 3,
+    "owner": "片山久未",
+    "status": "verified"
+  }
+]

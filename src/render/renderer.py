@@ -5,7 +5,7 @@
 * 10 条倾斜的四边形色带，统一倾角、高低错落、互相遮压；
 * 立绘以海报方式贴进色带并被裁切，只有 5★ 会整体前凸盖住相邻结果；
 * 每条色带底部的图标、数量与稀有度强调（5★ 星芒 / 4★ 燃焰 / 3★ 闪电 / 2★ 尾焰）；
-* 顶部资源栏、NEW 贴纸、相机与分享按钮。
+* 输出只保留背景与抽卡结果，不叠加游戏顶部资源栏、分享按钮等外围 UI。
 
 参考：``tools/fixtures/gacha_reference.jpg``，可用 ``tools/render_compare.py`` 并排对照。
 """
@@ -71,11 +71,43 @@ RARITY_ALT_STYLE: dict[int, dict] = {
 }
 
 
+# 每条色带的底色（按截图：绿、金、红、蓝交错，而不是清一色）。
+# 注释里的名字对应参考截图里同位置的卡；抽取结果与它无关，只借用配色节奏。
+CARD_PALETTE: tuple[dict, ...] = (
+    {"light": (34, 128, 84), "dark": (8, 48, 32), "frame": (196, 244, 214)},   # 1 深绿
+    {"light": (206, 156, 28), "dark": (72, 50, 8), "frame": (255, 232, 150)},  # 2 琥珀金
+    {"light": (150, 132, 40), "dark": (44, 38, 12), "frame": (232, 214, 140)},  # 3 橄榄金
+    {"light": (186, 126, 20), "dark": (62, 40, 6), "frame": (255, 220, 140)},   # 4 金
+    {"light": (52, 62, 178), "dark": (12, 14, 60), "frame": (198, 206, 255)},   # 5 靛蓝
+    {"light": (44, 54, 168), "dark": (10, 12, 52), "frame": (188, 198, 255)},   # 6 靛蓝
+    {"light": (176, 40, 52), "dark": (56, 8, 14), "frame": (255, 190, 196)},    # 7 绯红
+    {"light": (196, 150, 22), "dark": (66, 46, 8), "frame": (255, 228, 150)},   # 8 琥珀金
+    {"light": (170, 46, 44), "dark": (52, 10, 10), "frame": (255, 186, 180)},   # 9 红
+    {"light": (40, 70, 186), "dark": (8, 18, 66), "frame": (186, 206, 255)},    # 10 蓝
+)
+
+
+def palette_for(slot: int, rarity: int) -> dict:
+    """取某条卡片的配色：先看这条卡位自带的底色，5★ 再压成深蓝并带金色描边。"""
+    base = dict(CARD_PALETTE[slot % len(CARD_PALETTE)])
+    if rarity >= 5:
+        base.update({"light": (66, 76, 190), "dark": (14, 18, 74), "frame": (255, 236, 150)})
+    elif rarity == 4:
+        base.update({"light": (222, 168, 40), "dark": (78, 54, 8), "frame": (255, 236, 170)})
+    elif rarity == 3:
+        base.update({"light": (118, 104, 56), "dark": (44, 40, 20), "frame": (222, 206, 158)})
+    return base
+
+
 def style_for(rarity: int, slot: int = 0) -> dict:
-    """按稀有度和序号取配色；3★ 在 slot 为奇数时用暗绿档。"""
-    if rarity == 3 and slot % 2 == 1:
-        return RARITY_ALT_STYLE[3]
-    return RARITY_STYLE[rarity]
+    """按稀有度和序号取配色；色带底色用卡位自带的颜色，徽记等沿用稀有度样式。"""
+    if rarity <= 3:
+        style = dict(RARITY_STYLE[rarity] if not (rarity == 3 and slot % 2 == 1)
+                     else RARITY_ALT_STYLE[3])
+    else:
+        style = dict(RARITY_STYLE[rarity])
+    style.update({k: v for k, v in palette_for(slot, rarity).items() if k in ("light", "dark", "frame")})
+    return style
 # 兼容旧名字：部分外部脚本会读这两张表。
 RARITY_COLORS = {rarity: (style["light"], style["dark"]) for rarity, style in RARITY_STYLE.items()}
 TEXT = (248, 248, 244)
@@ -95,27 +127,35 @@ LATIN_FONT_CANDIDATES = [
 ]
 
 # ---------------------------------------------------------------------------
-# 布局：来自参考截图（1280×582）按 1.5 倍换算到 1920×873，再下移到 905 高画布。
-# x 为色带顶边左端，bottom 为色带底边位置（顶边右端 = x + slant）。
+# 布局：来自参考截图（1280×582）按 1.5 倍换算到 1920×873。
+# x 为色带顶边左端。截图里的色带向左下方倾斜，因此底边必须在顶边左侧。
 # ---------------------------------------------------------------------------
-SLANT = 151
+SLANT = -96
 CARD_LAYOUT: tuple[tuple[int, int, int, int], ...] = (
-    # (x, width, top, bottom) —— 顶边整体上提 20px，让画面上方留白更接近截图
-    (58, 300, 120, 632),
-    (268, 292, 120, 632),
-    (470, 285, 100, 596),
-    (664, 288, 100, 596),
-    (858, 288, 88, 582),
-    (1052, 290, 88, 582),
-    (1246, 288, 100, 596),
-    (1440, 292, 100, 596),
-    (1634, 288, 76, 570),
-    (1810, 250, 94, 570),
+    # (x, width, top, bottom)。最终横坐标会按实际抽取结果重新紧密排列。
+    (260, 142, 128, 750),
+    (402, 142, 140, 750),
+    (544, 142, 120, 750),
+    (686, 142, 106, 750),
+    (828, 142, 92, 750),
+    (970, 142, 92, 750),
+    (1112, 142, 106, 750),
+    (1254, 142, 120, 750),
+    (1396, 142, 140, 750),
+    (1538, 142, 128, 750),
 )
+
+FOUNDATION_RARITY_STYLE = {
+    2: {"light": (45, 164, 112), "dark": (6, 62, 40), "width": 142, "grow_top": 0, "grow_bottom": 0},
+    3: {"light": (112, 150, 92), "dark": (34, 70, 42), "width": 142, "grow_top": 0, "grow_bottom": 0},
+    4: {"light": (255, 196, 54), "dark": (112, 62, 2), "width": 142, "grow_top": 0, "grow_bottom": 0},
+    # 5★ 使用接近钻石折射的冷白蓝紫色，后续星级贴图会继续覆盖在其上。
+    5: {"light": (204, 218, 255), "dark": (40, 36, 142), "width": 152, "grow_top": 34, "grow_bottom": 50},
+}
 # 5★ 的前凸量（相对自身色带，按比例）
 FIVE_STAR_BOOST = {"width": 1.06, "height": 1.06, "dx": -0.03, "top": 16}
-# 每条色带的轻微抖动，保证十连结果高低错落；种子固定，出图稳定。
-JITTER = ((0, -6), (4, 14), (-6, -2), (7, 9), (-3, 4), (5, -8), (-5, 6), (3, -4), (-2, 10), (6, 2))
+# 高低错落已经写入布局表；只保留极小的水平扰动，避免破坏截图测得的轮廓。
+JITTER = ((0, 0),) * 10
 
 
 @dataclass(frozen=True)
@@ -166,6 +206,24 @@ def card_geometry(index: int, rarity: int, window: int | None = None) -> CardGeo
             (float(bottom_x), float(bottom)),
         ),
         width=width,
+        height=bottom - top,
+    )
+
+
+def foundation_geometry(index: int, rarity: int, window: int | None = None) -> CardGeometry:
+    """按物品星级放大底版，同时保持卡位中心不动、相邻卡片不接触。"""
+    base = card_geometry(index, 2, window=window)
+    rarity = max(2, min(5, rarity))
+    spec = FOUNDATION_RARITY_STYLE[rarity]
+    target_width = spec["width"]
+    dx = (target_width - base.width) / 2
+    (tlx, tly), (_trx, _), (_brx, bry), (blx, _) = base.quad
+    top = tly - spec["grow_top"]
+    bottom = bry + spec["grow_bottom"]
+    return CardGeometry(
+        quad=((tlx - dx, top), (tlx - dx + target_width, top),
+              (blx - dx + target_width, bottom), (blx - dx, bottom)),
+        width=target_width,
         height=bottom - top,
     )
 
@@ -253,7 +311,8 @@ class Renderer:
     # 色带
     # ------------------------------------------------------------------
     def _card_canvas(self, geometry: CardGeometry, scale: float) -> tuple[Image.Image, tuple[int, int]]:
-        pad = int(48 * scale) + 8
+        # 低星底部的横向长楔会向左伸出约 0.7 个卡宽，局部画布必须留足空间。
+        pad = int(128 * scale) + 8
         xs = [p[0] for p in geometry.quad]
         ys = [p[1] for p in geometry.quad]
         box = (math.floor(min(xs)) - pad, math.floor(min(ys)) - pad,
@@ -352,6 +411,39 @@ class Renderer:
         layer.paste(resized, (x, y), resized)
         card.alpha_composite(Image.composite(layer, Image.new("RGBA", card.size, (0, 0, 0, 0)), mask))
 
+    def art_layer(self, result: PullResult, geometry: CardGeometry, scale: float, slot: int = 0
+                  ) -> tuple[Image.Image, tuple[int, int]] | None:
+        """生成**不受色带裁切**的立绘图层（返回图层与左上角坐标）。
+
+        参考截图里立绘是主体、色带只是衬在后面的布料：人物顶到卡顶甚至越出色带，
+        左右也可以探出到相邻卡片上。所以立绘必须是独立的前层，不能塞进多边形里裁。
+        """
+        art = self.portrait(result.item)
+        width, height = geometry.width, geometry.height
+        (tlx, tly), (trx, _), (brx, bry), (blx, _) = geometry.quad
+        cx = (tlx + trx + brx + blx) / 4
+
+        if art is None:
+            # 缺图：用收在色带中央的角色型剪影兜底。不能铺满整张卡，否则十连会变成
+            # 十块相同的深色墓碑，完全盖掉参考图最重要的彩色色带节奏。
+            silhouette = self._silhouette(int(width * 0.72), int(height * 0.76), result.rarity, scale,
+                                          slot=slot, fill=True)
+            layer = Image.new("RGBA", silhouette.size, (0, 0, 0, 0))
+            layer.alpha_composite(silhouette)
+            return layer, (int(cx - silhouette.width / 2), int(bry - silhouette.height * 0.96))
+
+        if result.item.kind == "character":
+            # 角色：按身高铺满整张卡，再上浮 6%，让头探出卡顶（参考图里头顶都越界）。
+            factor = height * 1.06 / art.height
+        else:
+            # 武器：原比例放进卡片，横向不超过卡宽的 86%，避免枪管被切。
+            factor = min(width * 0.86 / art.width, height * 0.78 / art.height)
+        resized = art.resize((max(1, int(art.width * factor)), max(1, int(art.height * factor))),
+                             Image.Resampling.LANCZOS)
+        x = int(cx - resized.width / 2)
+        y = int(bry - resized.height)
+        return resized, (x, y)
+
     def _five_backdrop(self, canvas: Image.Image, geometry: CardGeometry, scale: float) -> None:
         """5★ 后方的那团巨大蓝色身影：截图里被前凸立绘挡住大半，仍能读出「人形 + 红眼」。"""
         (tlx, tly), (trx, _), (brx, bry), (blx, _) = geometry.quad
@@ -372,14 +464,17 @@ class Renderer:
         canvas.alpha_composite(glow.filter(ImageFilter.GaussianBlur(int(26 * scale))))
 
     def _silhouette(self, width: int, height: int, rarity: int, scale: float, palette: str = "dark",
-                    fill: bool = False, slot: int = 0) -> Image.Image:
-        """剪影：暗色长袍 + 头 + 角；``palette="blue"`` 时是 5★ 背后那团蓝色身影。"""
+                    fill: bool = False, slot: int = 0, overflow: bool = False) -> Image.Image:
+        """剪影：暗色长袍 + 头 + 角；``palette="blue"`` 时是 5★ 背后那团蓝色身影。
+
+        ``overflow=True`` 时按整角高度铺满（用于「立绘应当站起来、顶到卡顶」的场景）。
+        """
         if palette == "blue":
             # 蓝影要撑满整条色带：头在上部，肩膀展开到接近全宽。
             return self._monster_silhouette(width, height, scale)
         style = style_for(rarity, slot)
-        w = int(width * (1.0 if fill else 0.66))
-        h = int(height * (1.0 if fill else 0.60))
+        w = int(width * (1.0 if (fill or overflow) else 0.66))
+        h = int(height * (1.0 if (fill or overflow) else 0.60))
         image = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
         body = (8, 10, 18, 178)
@@ -627,28 +722,12 @@ class Renderer:
             swoosh.arc((cx - 20 * scale, bly - 14 * scale, cx + 20 * scale, bly + 6 * scale), 10, 170,
                        fill=(*style["flare"], 220), width=max(2, int(4 * scale)))
 
-    def _front_art(self, canvas: Image.Image, result: PullResult, geometry: CardGeometry, scale: float) -> None:
-        """5★ 的立绘不裁进色带，而是完整前凸压在相邻结果上，并在底部补星芒。"""
-        style = RARITY_STYLE[max(5, min(5, result.rarity))]
-        (tlx, tly), _, (brx, bry), (blx, _) = geometry.quad
-        cx = (tlx + tlx + brx + blx) / 4
-        width = geometry.width
-        height = geometry.height
-        art = self.portrait(result.item)
-        if art is not None:
-            if result.item.kind == "character":
-                factor = height * 1.02 / art.height
-            else:
-                factor = min(width * 0.8 / art.width, height * 0.8 / art.height)
-            resized = art.resize((max(1, int(art.width * factor)), max(1, int(art.height * factor))),
-                                 Image.Resampling.LANCZOS)
-            canvas.alpha_composite(resized, (int(cx - resized.width / 2), int(bry - resized.height)))
-        else:
-            silhouette = self._silhouette(int(width), int(height), 5, scale)
-            canvas.alpha_composite(silhouette, (int(cx - silhouette.width / 2),
-                                                int(bry - height * 0.20 - silhouette.height)))
-
-        # 底部星芒：光斑 + 白色四角星
+    def _five_flare(self, canvas: Image.Image, geometry: CardGeometry, scale: float) -> None:
+        """5★ 底部的白色四角星芒与柔光（立绘由前层负责，这里只补光效）。"""
+        style = RARITY_STYLE[5]
+        (_, _), (_, _), (_, bry), (blx, _) = geometry.quad
+        brx = geometry.quad[2][0]
+        cx = (blx + brx) / 2
         glow = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
         g = ImageDraw.Draw(glow)
         g.ellipse((cx - 52 * scale, bry - 26 * scale, cx + 52 * scale, bry + 22 * scale),
@@ -683,6 +762,61 @@ class Renderer:
                           card_scale=geometry.height / 440)
         self._frame(canvas, local, rarity, scale, slot=slot)
         return canvas, offset
+
+    def _foundation_card(self, geometry: CardGeometry, scale: float, slot: int, rarity: int):
+        """绘制独立底版：黑色四边框、向下延长的黑色底座，以及星级辉光。"""
+        canvas, offset = self._card_canvas(geometry, scale)
+        local = [(px - offset[0], py - offset[1]) for px, py in geometry.quad]
+        border = max(5, int(7 * scale))
+        foot = max(10, int(12 * scale))
+        points = _polygon(local)
+
+        # 高星只在自己的外框周围发亮，不改变轮廓、不侵占相邻卡位。
+        if rarity >= 4:
+            glow_color = (255, 232, 122, 190) if rarity == 4 else (158, 126, 255, 210)
+            glow = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+            ImageDraw.Draw(glow).polygon(points, fill=glow_color)
+            canvas.alpha_composite(glow.filter(ImageFilter.GaussianBlur(max(8, int(18 * scale)))))
+
+        draw = ImageDraw.Draw(canvas)
+        # 底边不是普通描边。4★/5★保留完整底座；2★/3★使用真正的三角形，
+        # 不能再在它背后垫一块完整四边形，否则三角轮廓会被吞掉。
+        blx, bly = local[3]
+        brx, bry = local[2]
+        if rarity >= 4:
+            draw.polygon(points, fill=(3, 3, 5, 255))
+            inner = _inner_quad(local, border)
+        else:
+            base_y = max(bly, bry) + foot + 15 * scale
+            apex = (blx, base_y - foot * 0.10)
+            upper_right = (brx, min(bly, bry) - 20 * scale + 15 * scale)
+            lower_right = (brx - border * 0.45, base_y)
+            # 主体本身在斜线上结束；三角形的三个角依次为：
+            # 左侧最小锐角、右上锐角、右下钝角。
+            draw.polygon([points[0], points[1], upper_right, apex], fill=(3, 3, 5, 255))
+            draw.polygon([apex, upper_right, lower_right], fill=(2, 2, 4, 255))
+            inner = _inner_quad(local, border)
+            inner[3] = (inner[3][0], apex[1] - border)
+            inner[2] = (inner[2][0], upper_right[1] + border)
+        palette = FOUNDATION_RARITY_STYLE[max(2, min(5, rarity))]
+        self._fill_gradient(canvas, inner, palette["light"], palette["dark"])
+        return canvas, offset
+
+    @staticmethod
+    def _centered_result_slots(results: Sequence[PullResult]) -> list[PullResult]:
+        """5★占正中央，4★占中央两侧，低星从外侧向内填充。"""
+        count = len(results)
+        five_slots = [4, 5, 3, 6, 2, 7, 1, 8, 0, 9]
+        four_slots = [3, 6, 2, 7, 1, 8, 0, 9, 4, 5]
+        low_slots = [0, 9, 1, 8, 2, 7, 3, 6, 4, 5]
+        preferences = {5: five_slots, 4: four_slots, 3: low_slots, 2: low_slots}
+        slots: list[PullResult | None] = [None] * count
+        ranked = sorted(enumerate(results), key=lambda pair: (-pair[1].rarity, pair[0]))
+        for _source, result in ranked:
+            preferred = preferences[max(2, min(5, result.rarity))]
+            target = next(index for index in preferred if index < count and slots[index] is None)
+            slots[target] = result
+        return [result for result in slots if result is not None]
 
     # ------------------------------------------------------------------
     # 顶部 / 右下角装饰
@@ -781,42 +915,32 @@ class Renderer:
         scale = self._scale(size)
         count = min(len(results), len(CARD_LAYOUT))
         if count <= 0:
-            # 空结果：只出背景 + HUD，不画任何色带（调用方本不该走到这里，但不能抛异常）。
-            if size[0] >= 1200:
-                self._top_hud(canvas, scale, show_new=show_new)
+            # 空结果只返回背景（调用方本不该走到这里，但不能抛异常）。
             return canvas.convert("RGB")
-        drawn = list(results)[:count]
-        geometry = [card_geometry(i, drawn[i].rarity, window=count) for i in range(count)]
-
-        # z 序：5★ 蓝影垫底 → 低星色带 → 5★ 色带（压在相邻低星上，被自己的蓝影托底）
-        # → 4★/3★/2★ 底部强调 → 5★ 前凸立绘与星芒。
-        order = sorted(range(count), key=lambda i: (drawn[i].rarity, i))
-        # 5★ 背后那团蓝色身影要先画，否则会被自己的色带盖住。
-        for i in order:
-            if drawn[i].rarity >= 5:
-                self._five_backdrop(canvas, geometry[i], scale)
-        for i in order:
-            if drawn[i].rarity >= 5:
-                continue
-            card, (ox, oy) = self._result_card(drawn[i], geometry[i], scale, art_layer=True, slot=i)
+        # 第一阶段只校准十个独立底版。高星仅决定居中次序、底色和辉光，不改变几何。
+        arranged = self._centered_result_slots(list(results)[:count])
+        geometry = [foundation_geometry(i, arranged[i].rarity, window=count) for i in range(count)]
+        # 按每张实际宽度连续排布，不留背景缝。相邻卡片各自的黑色描边会贴在一起，
+        # 自然形成截图中的黑色分割线；较宽的5★会把两侧整体推开而不是覆盖它们。
+        border_overlap = 10.0
+        total_width = sum(item.width for item in geometry) - border_overlap * max(0, count - 1)
+        cursor = (DESIGN_W - total_width) / 2
+        packed: list[CardGeometry] = []
+        for item in geometry:
+            top = item.quad[0][1]
+            bottom = item.quad[3][1]
+            packed.append(CardGeometry(
+                quad=((cursor, top), (cursor + item.width, top),
+                      (cursor + SLANT + item.width, bottom), (cursor + SLANT, bottom)),
+                width=item.width,
+                height=item.height,
+            ))
+            cursor += item.width - border_overlap
+        geometry = packed
+        for i in range(count):
+            card, (ox, oy) = self._foundation_card(geometry[i], scale, i, arranged[i].rarity)
             canvas.alpha_composite(card, (int(ox), int(oy)))
-        for i in order:
-            if drawn[i].rarity >= 5:
-                # 5★ 底色半透明，让它背后的蓝色身影透出来；立绘单独前凸后画。
-                card, (ox, oy) = self._result_card(drawn[i], geometry[i], scale, art_layer=False, slot=i,
-                                                   base_alpha=225)
-                canvas.alpha_composite(card, (int(ox), int(oy)))
-        for i in order:
-            if drawn[i].rarity < 5:
-                self._accent(canvas, geometry[i].quad, drawn[i].rarity, scale, slot=i)
-        for i in order:
-            if drawn[i].rarity >= 5:
-                self._front_art(canvas, drawn[i], geometry[i], scale)
 
-        if size[0] >= 1200:
-            self._top_hud(canvas, scale, show_new=show_new)
-            self._share_badge(canvas, scale)
-            self._caption_badge(canvas, caption, scale)
         return canvas.convert("RGB")
 
     def render_single(
@@ -839,11 +963,16 @@ class Renderer:
         )
         if result.rarity >= 5:
             self._five_backdrop(canvas, shifted, scale)
-        card, (ox, oy) = self._result_card(result, shifted, scale, art_layer=result.rarity < 5,
-                                           base_alpha=225 if result.rarity >= 5 else 255)
+        # 单抽同样走「色带 + 独立立绘前层」，保证立绘顶到卡顶而不是被裁进色带。
+        card, (ox, oy) = self._result_card(result, shifted, scale, art_layer=False,
+                                           base_alpha=200 if result.rarity >= 5 else 255)
         canvas.alpha_composite(card, (int(ox), int(oy)))
+        layer = self.art_layer(result, shifted, scale)
+        if layer is not None:
+            art, (ax, ay) = layer
+            canvas.alpha_composite(art, (int(ax), int(ay)))
         if result.rarity >= 5:
-            self._front_art(canvas, result, shifted, scale)
+            self._five_flare(canvas, shifted, scale)
         else:
             self._accent(canvas, shifted.quad, result.rarity, scale)
         return canvas.convert("RGB")

@@ -25,6 +25,7 @@ from src.render.renderer import (  # noqa: E402
     DESIGN_W,
     Renderer,
     card_geometry,
+    foundation_geometry,
 )
 
 
@@ -67,15 +68,15 @@ def test_ten_render_size_and_speed(registry, renderer):
 
 
 def test_five_star_backdrop_is_blue(registry, renderer):
-    """5★ 色带中部必须是蓝调（背后那团蓝影 + 深蓝底），不能被金色盖回。"""
+    """最高星结果排进中央后，其底版必须是蓝调。"""
     results = _mixed(registry)
     image = renderer.render_ten(results).convert("RGB")
-    geometry = card_geometry(0, 5)
+    geometry = card_geometry(4, 2)
     (_, top), (_, _), (_, bottom), (_, _) = geometry.quad
     cx = (geometry.quad[0][0] + geometry.quad[2][0]) / 2
     cy = (top + bottom) / 2
     # 取卡片中上部（避开立绘与底部徽记）
-    r, g, b = image.getpixel((int(cx - geometry.width * 0.30), int(cy - geometry.height * 0.25)))
+    r, g, b = image.getpixel((int(cx), int(cy)))
     assert b > r + 30, f"5★ 中部应为蓝调，实际 {(r, g, b)}"
 
 
@@ -85,17 +86,40 @@ def test_layout_matches_reference_rhythm():
     tops = [card_geometry(i, 2).top for i in range(10)]
     assert len(set(tops)) > 4, "色带顶边应有明显高低差"
     bottoms = [card_geometry(i, 2).quad[2][1] for i in range(10)]
-    assert max(bottoms) - min(bottoms) > 20, "色带底边应有高低差"
+    assert len(set(bottoms)) == 1, "底版的底边应齐平，额外黑边再统一向下延长"
+
+
+def test_foundation_cards_do_not_overlap():
+    """十个底版之间必须留出黑缝，顶边和底边都不能相互覆盖。"""
+    cards = [card_geometry(i, 2) for i in range(10)]
+    for left, right in zip(cards, cards[1:]):
+        assert left.quad[1][0] <= right.quad[0][0]
+        assert left.quad[2][0] <= right.quad[3][0]
 
 
 def test_first_and_last_card_are_visible():
     """首卡只被裁掉一点；末卡的顶边大部分落在画布内（底边为斜切，可越出）。"""
     first = card_geometry(0, 2)
     last = card_geometry(9, 2)
-    assert first.quad[0][0] < 200, "第 1 张应贴住左边"
+    assert first.quad[3][0] < 220, "第 1 张的左下边应贴近参考图左侧"
     top_left, top_right = last.quad[0][0], last.quad[1][0]
     visible = min(top_right, DESIGN_W) - max(top_left, 0)
     assert visible > (top_right - top_left) * 0.4, "第 10 张应有至少 40% 的顶边在画布内"
+
+
+def test_cards_lean_down_to_the_left_like_reference():
+    """参考图的色带由右上斜向左下，底边不能画到顶边右侧。"""
+    for index in range(10):
+        geometry = card_geometry(index, 2)
+        assert geometry.quad[3][0] < geometry.quad[0][0]
+
+
+def test_result_has_no_surrounding_hud(registry, renderer):
+    """用户要求仅背景与结果：顶部资源栏区域应与纯背景保持一致。"""
+    results = _mixed(registry)
+    rendered = renderer.render_ten(results).convert("RGB")
+    background = renderer._background((DESIGN_W, DESIGN_H)).convert("RGB")
+    assert rendered.crop((1800, 0, 1920, 70)).tobytes() == background.crop((1800, 0, 1920, 70)).tobytes()
 
 
 def test_missing_art_uses_silhouette(registry, renderer):
@@ -137,13 +161,21 @@ def test_no_up_badge(renderer, registry):
     assert reds < region.width * region.height * 0.02, "不应出现红色 UP 角标"
 
 
-def test_reward_row_on_high_rarity_cards(registry, renderer):
-    """5★/4★ 的奖励行应存在：高星卡片底部一带应出现金色像素。"""
+def test_high_rarity_is_centered_without_changing_geometry(registry, renderer):
+    """星级会改变底色与辉光，但只能重新分配固定卡位，不能改变几何。"""
     results = _mixed(registry)
-    image = renderer.render_ten(results).convert("RGB")
-    band = image.crop((0, int(DESIGN_H * 0.50), DESIGN_W, int(DESIGN_H * 0.72)))
-    gold = sum(1 for px in band.getdata() if px[0] > 180 and px[1] > 140 and px[2] < 130)
-    assert gold > 400, f"卡片底部金色像素只有 {gold}，奖励图标可能没画出来"
+    changed = [_r(result.item, 2, index=i + 1) for i, result in enumerate(results)]
+    arranged = renderer._centered_result_slots(results)
+    assert arranged[4].rarity == max(result.rarity for result in results)
+    assert renderer.render_ten(results).tobytes() != renderer.render_ten(changed).tobytes()
+
+
+def test_foundation_size_increases_with_rarity():
+    sizes = [foundation_geometry(4, rarity) for rarity in (2, 3, 4, 5)]
+    assert sizes[0].width == sizes[1].width == sizes[2].width
+    assert sizes[0].height == sizes[1].height == sizes[2].height
+    assert sizes[3].width > sizes[2].width
+    assert sizes[3].height > sizes[2].height
 
 
 def test_single_render(registry, renderer):

@@ -7,3 +7,5 @@ __pycache__/
 .vscode/
 output/
 dist/
+# Original unpacked character images stay local; ship prepared runtime assets only.
+assets/character_layers/*.png

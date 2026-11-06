@@ -1,196 +1,487 @@
 {
-  "_comment": "⚠ 占位数据：2★ / 3★ 人格面具候选池。官方日文站只写「2〜3★ ペルソナ 93%」，没有公布 3★:2★ 拆分与完整名单，这里的名字仅用于让抽卡跑通，正式发布前必须用游戏内实数替换。",
+  "_comment": "BWIKI图鉴2/3星素材与属性；非已核实的实际契约卡池名单。",
+  "source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4",
   "items": [
     {
-      "id": "persona:metatron",
-      "name": "梅塔特隆",
-      "rarity": 3
+      "id": "persona:伊西斯",
+      "name": "伊西斯",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/1/12/9jlry5squy7kq162zwnxr8s39w9ocx3.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:lucifer",
-      "name": "路西法",
-      "rarity": 3
+      "id": "persona:佛劳洛斯",
+      "name": "佛劳洛斯",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/b/bb/626q46rxfhawyxafzq462ua3lul4io8.png",
+      "element": "物理",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:michael",
-      "name": "米迦勒",
-      "rarity": 3
+      "id": "persona:佳塔由",
+      "name": "佳塔由",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/2/2a/3rk9in309x0o4q5x0xlyszyz46sy9yq.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:satan",
-      "name": "撒旦",
-      "rarity": 3
+      "id": "persona:克洛托",
+      "name": "克洛托",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/3/39/2xjshbjlfuokfc0w1wwujcf2or2q78o.png",
+      "element": "祝福",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:beelzebub",
-      "name": "别西卜",
-      "rarity": 3
+      "id": "persona:八咫乌",
+      "name": "八咫乌",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/f/f8/psg6rxhb3o45ztsdzergzevrgwibmot.png",
+      "element": "火焰",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:baal",
-      "name": "巴力",
-      "rarity": 3
+      "id": "persona:兰达",
+      "name": "兰达",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/1/1a/979co3z3jrvchsu6l9po5hulm1v7z9e.png",
+      "element": "诅咒",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:trumpeter",
-      "name": "吹号者",
-      "rarity": 3
+      "id": "persona:单卡拉比",
+      "name": "单卡拉比",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/0/00/gupbjqulpehwdui47zkkgzbzubmgrlz.png",
+      "element": "火焰",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:asterius",
-      "name": "阿斯忒里俄斯",
-      "rarity": 3
+      "id": "persona:基力梅卡拉",
+      "name": "基力梅卡拉",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/9/95/hky8a54r4r7u9psh50mtuhntpxy9zbr.png",
+      "element": "物理",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:seiten-taisei",
-      "name": "齐天大圣",
-      "rarity": 3
+      "id": "persona:增长天王",
+      "name": "增长天王",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/d/d3/lbc39iviw0ud1wqyyjqg92nftcdf2n2.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:susano-o",
-      "name": "素盏鸣尊",
-      "rarity": 3
+      "id": "persona:天蛾人",
+      "name": "天蛾人",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/c/ca/0giora8wrnx94a0su74zkjno9wmmd28.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:astaroth",
-      "name": "亚斯塔禄",
-      "rarity": 3
+      "id": "persona:女武神",
+      "name": "女武神",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/6/68/k4nnwys06vfeyy6zs9rk99iz2bxu4uv.png",
+      "element": "物理",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:orpheus",
-      "name": "俄耳甫斯",
-      "rarity": 3
+      "id": "persona:密特拉",
+      "name": "密特拉",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/9/93/4wqdwfgfakddciynfou7lbmoxzs458m.png",
+      "element": "祝福",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:pixie",
-      "name": "皮克西",
-      "rarity": 2
+      "id": "persona:巴隆",
+      "name": "巴隆",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/4/4e/twgjqigjr4cbpzryutpabedwuo78h3c.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:jack-o-lantern",
-      "name": "杰克灯笼",
-      "rarity": 2
+      "id": "persona:托特",
+      "name": "托特",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/3/3b/3g37um8vllbuoacwww14ezsowygu00b.png",
+      "element": "核热",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:jack-frost",
-      "name": "杰克霜精",
-      "rarity": 2
+      "id": "persona:斯卡哈",
+      "name": "斯卡哈",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/2/2f/dbld05t1zpr79a6fil6jkt53xl1u7ml.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:mandrake",
-      "name": "曼陀罗草",
-      "rarity": 2
+      "id": "persona:斯尔特",
+      "name": "斯尔特",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/5/59/p4pplq14jqfn71xbktpc2iau6u6kg8t.png",
+      "element": "火焰",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:agathion",
-      "name": "阿加席恩",
-      "rarity": 2
+      "id": "persona:水鬼",
+      "name": "水鬼",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/b/b3/sdur0cdkja4torp6ktp3bq3glk3au9j.png",
+      "element": "冰冻",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:bicorn",
-      "name": "双角兽",
-      "rarity": 2
+      "id": "persona:百臂巨人",
+      "name": "百臂巨人",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/3/3c/mt0hyg5ea1i61542uatb9a2yxks5m8y.png",
+      "element": "念动",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:slime",
-      "name": "史莱姆",
-      "rarity": 2
+      "id": "persona:睡魔",
+      "name": "睡魔",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/5/55/ebygbmzpotwu0yxkjljuis5lggy7t4h.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:poltergeist",
-      "name": "骚灵",
-      "rarity": 2
+      "id": "persona:米特拉斯",
+      "name": "米特拉斯",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/2/26/2scfsap2b3pgyrcj24ll6ny8wr4m4lx.png",
+      "element": "核热",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:salamander",
-      "name": "沙罗曼蛇",
-      "rarity": 2
+      "id": "persona:红骑士",
+      "name": "红骑士",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/6/63/j9il0l1e0ef19knpdc86tj0chkzf83b.png",
+      "element": "念动",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:undine",
-      "name": "温蒂妮",
-      "rarity": 2
+      "id": "persona:罗刹",
+      "name": "罗刹",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/c/c4/hrzbx8c6vuh0hopxwl83aew6d08rrkp.png",
+      "element": "物理",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:sylph",
-      "name": "西尔芙",
-      "rarity": 2
+      "id": "persona:羽蛇神",
+      "name": "羽蛇神",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/8/82/f0hng326qs6j39ldehw3rhm2fqd2ptc.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:knocker",
-      "name": "诺克",
-      "rarity": 2
+      "id": "persona:能天使",
+      "name": "能天使",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/2/2e/hllhh9dtjtkx5bluuubhypot28d0bwq.png",
+      "element": "祝福",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:apsaras",
-      "name": "阿普萨拉斯",
-      "rarity": 2
+      "id": "persona:荒魂",
+      "name": "荒魂",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/6/6d/b3u5afecqnlcsxpqzti0hz7zyn655kt.png",
+      "element": "核热",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:oni",
-      "name": "鬼",
-      "rarity": 2
-    },
-    {
-      "id": "persona:shiki-ouji",
-      "name": "式王子",
-      "rarity": 2
-    },
-    {
-      "id": "persona:makami",
-      "name": "真神",
-      "rarity": 2
-    },
-    {
-      "id": "persona:nekomata",
-      "name": "猫又",
-      "rarity": 2
-    },
-    {
-      "id": "persona:kikuri-hime",
+      "id": "persona:菊理媛",
       "name": "菊理媛",
-      "rarity": 2
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/2/22/8h4r8gjclrd80aasc87c65e733a15n6.png",
+      "element": "冰冻",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:take-minakata",
-      "name": "建御名方",
-      "rarity": 2
+      "id": "persona:虹蛇",
+      "name": "虹蛇",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/b/bd/7ltvk1rqjrbgt7rwx4czyznev9zuc11.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:arachne",
-      "name": "阿拉克涅",
-      "rarity": 2
+      "id": "persona:迦楼罗",
+      "name": "迦楼罗",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/3/30/lschjyjxo8h8c7xurilc2rendti3mel.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:heiress",
-      "name": "女继承人",
-      "rarity": 2
+      "id": "persona:迦温",
+      "name": "迦温",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/e/e2/t18xv07v3hqdnbcx68upydhyub2m8v9.png",
+      "element": "念动",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:high-pixie",
-      "name": "高等皮克西",
-      "rarity": 2
+      "id": "persona:那伽",
+      "name": "那伽",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/f/fb/sqs3fylrvl86q6hwtneuocnq1sq6vx9.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:succubus",
-      "name": "魅魔",
-      "rarity": 2
+      "id": "persona:那伽王",
+      "name": "那伽王",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/2/25/5kdcegz2u7tmpzawlwuudu8rj6m59tk.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:incubus",
-      "name": "梦魔",
-      "rarity": 2
+      "id": "persona:风鬼",
+      "name": "风鬼",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/3/39/p9ze8cuv2vmcfh2e3p1o3aqwiv7gp0d.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:archangel",
-      "name": "大天使",
-      "rarity": 2
+      "id": "persona:黑软泥怪",
+      "name": "黑软泥怪",
+      "rarity": 3,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/e/e9/rojf05lwvencuzjg13fdxy2bihr21at.png",
+      "element": "诅咒",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     },
     {
-      "id": "persona:angel",
-      "name": "天使",
-      "rarity": 2
+      "id": "persona:一本踏鞴",
+      "name": "一本踏鞴",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/8/8f/eu9qwaj3hfjz51x9lg6ctgak9141yuo.png",
+      "element": "物理",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:克鲁波克鲁",
+      "name": "克鲁波克鲁",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/6/60/djvvpsqf7k0jb1mh45y0gbitx2taa01.png",
+      "element": "冰冻",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:凯尔派",
+      "name": "凯尔派",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/9/98/52n90u9en5celfd6eymxh8305222edv.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:双角兽",
+      "name": "双角兽",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/a/a6/fcio9bbwly0vh4ev44dnd03n9a34seu.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:和魂",
+      "name": "和魂",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/1/15/oflk5yr9yj5c15tpzvfq42t9ckucpz7.png",
+      "element": "祝福",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:奇魂",
+      "name": "奇魂",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/4/4b/a5nj7ybp69tppq16bexnytijc9f1ths.png",
+      "element": "冰冻",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:安德拉斯",
+      "name": "安德拉斯",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/4/4f/stcpl9bmq145ds2nmdvtmo6y3xo07yf.png",
+      "element": "冰冻",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:山灵",
+      "name": "山灵",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/3/3c/5unw0tgybkmwbzohjqlqq8txu7u2mlb.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:幸魂",
+      "name": "幸魂",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/6/61/8hhzoiuacdyqeube112dhz6cdex0wpv.png",
+      "element": "冰冻",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:曼陀罗",
+      "name": "曼陀罗",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/f/f9/bu8b7g3845t9mc4hniylmbrf5kw8vfz.png",
+      "element": "物理",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:木叶天狗",
+      "name": "木叶天狗",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/7/75/d46wqmoshpgsrye93lgtipd2usxen0n.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:木灵",
+      "name": "木灵",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/c/c1/pzuonp7c7j1zbstjp4jbt6edg70qnzg.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:朱雀",
+      "name": "朱雀",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/7/74/rhshdiaidom1a8owu7va66avnhgormh.png",
+      "element": "核热",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:杰克灯笼",
+      "name": "杰克灯笼",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/4/40/igjpb7tle6ss3apvp5z3t2ct2x8oo8q.png",
+      "element": "火焰",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:欧若博司",
+      "name": "欧若博司",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/c/c3/69i4785b5224r7oiug14gl5svioimdj.png",
+      "element": "火焰",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:犬神",
+      "name": "犬神",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/8/83/6vo9tawgv2dbzsmklekllawujvszkn3.png",
+      "element": "物理",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:狮爷",
+      "name": "狮爷",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/0/05/ewrju8ottoqxvrugbvednoqmqdcafek.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:猫又",
+      "name": "猫又",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/a/af/s0hxlf1p95wgwi2kl0f2he0w8hxtsc4.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:皮克希",
+      "name": "皮克希",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/2/2b/r0vnzcfacshkvd18n215l6tv28wbe56.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:真神",
+      "name": "真神",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/7/74/pun5dkwu6zabq4f6d23xn9o6n333tcg.png",
+      "element": "核热",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:花魄",
+      "name": "花魄",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/a/a0/jgw5e1331tchafadsxy6u7r16bdnd2n.png",
+      "element": "火焰",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:莫克伊",
+      "name": "莫克伊",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/4/49/hrvu6k2ynpjzbsv1s6eo5qci2w0gkgs.png",
+      "element": "物理",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:软泥怪",
+      "name": "软泥怪",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/b/b5/13dylxqmh46h20q3y18ykxkv3o80jor.png",
+      "element": "诅咒",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:阴摩罗鬼",
+      "name": "阴摩罗鬼",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/4/47/kxg3ijavs6lmkfr5x80vzcsjbl740hf.png",
+      "element": "诅咒",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:阿珈席翁",
+      "name": "阿珈席翁",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/9/98/ebxgdqiqdr9c9c5siv66dzktb67hg15.png",
+      "element": "电击",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:飞天",
+      "name": "飞天",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/c/c9/aot4781pwhaxbm37lhzscug18fktblu.png",
+      "element": "冰冻",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
+    },
+    {
+      "id": "persona:高等皮克希",
+      "name": "高等皮克希",
+      "rarity": 2,
+      "source_url": "https://patchwiki.biligame.com/images/nsywl/2/24/39jwpz2sr9ln8dwhr2jtvx53m9thx09.png",
+      "element": "疾风",
+      "element_source": "https://wiki.biligame.com/nsywl/%E9%9D%A2%E5%85%B7%E5%9B%BE%E9%89%B4"
     }
   ],
-  "status": "placeholder"
+  "status": "verified_from_bwiki"
 }

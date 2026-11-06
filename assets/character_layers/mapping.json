@@ -1,0 +1,569 @@
+{
+  "char:LEON": {
+    "front": "lihui-guaidao-leo.png",
+    "back": "lihui-guaidao-leo-02.png",
+    "name": "神山岭央",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-leo.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-leo-02.png"
+    ]
+  },
+  "char:CATTLE": {
+    "front": "lihui-guaidao-cattle.png",
+    "back": "lihui-guaidao-cattle-02.png",
+    "name": "路菲尔",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-cattle.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-cattle-02.png"
+    ]
+  },
+  "char:CLOSER": {
+    "front": "lihui-guaidao-closer.png",
+    "back": "lihui-guaidao-closer-02.png",
+    "name": "新井素羽",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-closer.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-closer-02.png"
+    ]
+  },
+  "char:MONT": {
+    "front": "lihui-guaidao-mont.png",
+    "back": "lihui-guaidao-mont-02.png",
+    "name": "琴音·蒙塔涅",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-mont.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-mont-02.png"
+    ]
+  },
+  "char:PUPPET": {
+    "front": "lihui-guaidao-puppet.png",
+    "back": "lihui-guaidao-puppet-02.png",
+    "name": "佐原海夕",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-puppet.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-puppet-02.png"
+    ]
+  },
+  "char:FLEURET": {
+    "front": "lihui-guaidao-seiji.png",
+    "back": "lihui-guaidao-seiji-02.png",
+    "name": "白鸟诚司",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Texture2D-20261106T125440Z-1-001\\Texture2D\\lihui-guaidao-seiji.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-seiji-02.png"
+    ]
+  },
+  "char:SOY": {
+    "front": "lihui-guaidao-soy.png",
+    "back": "lihui-guaidao-soy-02.png",
+    "name": "加纳骏",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Texture2D-20261106T125440Z-1-001\\Texture2D\\lihui-guaidao-soy.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-soy-02.png"
+    ]
+  },
+  "char:YUKI": {
+    "front": "lihui-guaidao-tembin.png",
+    "back": "lihui-guaidao-tembin-02.png",
+    "name": "藤川雪实",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Texture2D-20261106T125440Z-1-001\\Texture2D\\lihui-guaidao-tembin.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-tembin-02.png"
+    ]
+  },
+  "char:OKYANN": {
+    "front": "lihui-guaidao-okyann.png",
+    "back": "lihui-guaidao-okyann-02.png",
+    "name": "富山佳代",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-okyann.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-okyann-02.png"
+    ]
+  },
+  "char:KEY": {
+    "front": "lihui-guaidao-kii.png",
+    "back": "lihui-guaidao-kii-02.png",
+    "name": "黑谷清",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-kii.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-kii-02.png"
+    ]
+  },
+  "char:MOKO": {
+    "front": "lihui-guaidao-kotomo.png",
+    "back": "lihui-guaidao-kotomo-02.png",
+    "name": "野毛朋子",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-kotomo.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-kotomo-02.png"
+    ]
+  },
+  "char:SEPIA": {
+    "front": "lihui-guaidao-sepia.png",
+    "back": "lihui-guaidao-sepia-02.png",
+    "name": "须见俊也",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Texture2D-20261106T125440Z-1-001\\Texture2D\\lihui-guaidao-sepia.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-sepia-02.png"
+    ]
+  },
+  "char:VINO": {
+    "front": "lihui-guaidao-vino.png",
+    "back": "lihui-guaidao-vino-02.png",
+    "name": "长尾千津子",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-vino.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-vino-02.png"
+    ]
+  },
+  "char:WIND": {
+    "front": "lihui-guaidao-wind.png",
+    "back": "lihui-guaidao-wind-02.png",
+    "name": "多祢村理子",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-wind.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-wind-02.png"
+    ]
+  },
+  "char:LUCE": {
+    "front": "lihui-guaidao-luce.png",
+    "back": "lihui-guaidao-luce-02.png",
+    "name": "池波星辉",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-luce.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-luce-02.png"
+    ]
+  },
+  "char:RIDDLE": {
+    "front": "lihui-guaidao-riddle.png",
+    "back": "lihui-guaidao-riddle-02.png",
+    "name": "西森阳菜",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-riddle.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-riddle-02.png"
+    ]
+  },
+  "char:SKULL": {
+    "front": "lihui-guaidao-skull.png",
+    "back": "lihui-guaidao-skull-02.png",
+    "name": "坂本龙司",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Texture2D-20261106T125440Z-1-001\\Texture2D\\lihui-guaidao-skull.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-skull-02.png"
+    ]
+  },
+  "char:MONA": {
+    "front": "lihui-guaidao-mona.png",
+    "back": "lihui-guaidao-mona-02.png",
+    "name": "摩尔加纳",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-mona.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-mona-02.png"
+    ]
+  },
+  "char:PANTHER": {
+    "front": "lihui-guaidao-panther.png",
+    "back": "lihui-guaidao-panther-02.png",
+    "name": "高卷杏",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-panther.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-panther-02.png"
+    ]
+  },
+  "char:RIN": {
+    "front": "lihui-guaidao-rin.png",
+    "back": "lihui-guaidao-rin-02.png",
+    "name": "李瑶铃",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Texture2D-20261106T125440Z-1-001\\Texture2D\\lihui-guaidao-rin.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-rin-02.png"
+    ]
+  },
+  "char:JOKER": {
+    "front": "lihui-guaidao-joker.png",
+    "back": "lihui-guaidao-joker-02-new.png",
+    "name": "雨宫莲",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-joker.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-joker-02-new.png"
+    ]
+  },
+  "char:MARIAN": {
+    "front": "lihui-guaidao-marian.png",
+    "back": "lihui-guaidao-marian02.png",
+    "name": "宫下美波",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-marian.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-marian02.png"
+    ]
+  },
+  "char:BUI": {
+    "front": "lihui-guaidao-bui.png",
+    "back": "lihui-guaidao-bui-02.png",
+    "name": "YUI",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-bui.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-bui-02.png"
+    ]
+  },
+  "char:FOX": {
+    "front": "lihui-guaidao-fox.png",
+    "back": "lihui-guaidao-fox-02.png",
+    "name": "喜多川祐介",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-fox.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-fox-02.png"
+    ]
+  },
+  "char:QUEEN": {
+    "front": "lihui-guaidao-queen.png",
+    "back": "lihui-guaidao-queen-02.png",
+    "name": "新岛真",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-queen.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-queen-02.png"
+    ]
+  },
+  "char:PHOEBE": {
+    "front": "lihui-guaidao-phoebe.png",
+    "back": "lihui-guaidao-phoebe-02.png",
+    "name": "椎名悠美",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-phoebe.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-phoebe-02.png"
+    ]
+  },
+  "char:CHORD": {
+    "front": "lihui-guaidao-chord.png",
+    "back": "lihui-guaidao-chord-02.png",
+    "name": "坂井绫香",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-chord.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-chord-02.png"
+    ]
+  },
+  "char:CLOSER·Tropical": {
+    "front": "lihui-guaidao-closerS.png",
+    "back": "lihui-guaidao-closerS-02.png",
+    "name": "新井素羽·夏日",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-closerS.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-closerS-02.png"
+    ]
+  },
+  "char:MOKO·Seaside": {
+    "front": "Texture-Renzhimoniactivity-kotomos01.png",
+    "back": "Texture-Renzhimoniactivity-kotomos02.png",
+    "name": "野毛朋子·夏日",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\Texture-Renzhimoniactivity-kotomos01.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\Texture-Renzhimoniactivity-kotomos02.png"
+    ]
+  },
+  "char:MESSA": {
+    "front": "lihui-guaidao-doctor.png",
+    "back": "lihui-guaidao-doctor-02.png",
+    "name": "北里基良",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-doctor.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-doctor-02.png"
+    ]
+  },
+  "char:NAVI": {
+    "front": "lihui-guaidao-navi.png",
+    "back": "lihui-guaidao-navi-02.png",
+    "name": "佐仓双叶",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-navi.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-navi-02.png"
+    ]
+  },
+  "char:CHERISH": {
+    "front": "lihui-guaidao-cherish.png",
+    "back": "lihui-guaidao-cherish-02.png",
+    "name": "芦谷真咲",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-cherish.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-cherish-02.png"
+    ]
+  },
+  "char:NOIR": {
+    "front": "Texture-Renzhimoniactivity-noir.png",
+    "back": "Texture-Renzhimoniactivity-noir-02.png",
+    "name": "奥村春",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\Texture-Renzhimoniactivity-noir.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\Texture-Renzhimoniactivity-noir-02.png"
+    ]
+  },
+  "char:MONT·Frostgale": {
+    "front": "lihui-guaidao-montManwu.png",
+    "back": "lihui-guaidao-montManwu-02.png",
+    "name": "琴音 蒙塔涅·漫舞",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-montManwu.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-montManwu-02.png"
+    ]
+  },
+  "char:HOWLER": {
+    "front": "lihui-guaidao-howler.png",
+    "back": "lihui-guaidao-howler-02.png",
+    "name": "道玄坂琉七",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-howler.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-howler-02.png"
+    ]
+  },
+  "char:VIOLET": {
+    "front": "lihui-guaidao-violet.png",
+    "back": "Texture-update-violet-persona.png",
+    "name": "芳泽霞",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-violet.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\Texture-update-violet-persona.png"
+    ]
+  },
+  "char:WIND·Tempest": {
+    "front": "lihui-guaidao-windWY.png",
+    "back": "Texture-update-windWY-persona.png",
+    "name": "多祢村理子·未央",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-windWY.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\Texture-update-windWY-persona.png"
+    ]
+  },
+  "char:RIN·Firecracker": {
+    "front": "lihui-guaidao-rinN.png",
+    "back": "Texture-update-rinN-persona.png",
+    "name": "李瑶铃·太平乐",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-rinN.png",
+      "C:\\Users\\Administrator\\Downloads\\Texture2D-20261106T125440Z-1-001\\Texture2D\\Texture-update-rinN-persona.png"
+    ]
+  },
+  "char:MATOI": {
+    "front": "lihui-guaidao-matoi.png",
+    "back": "Texture-update-matoi-persona.png",
+    "name": "夏川澪",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-matoi.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\Texture-update-matoi-persona.png"
+    ]
+  },
+  "char:TURBO": {
+    "front": "lihui-guaidao-turbo.png",
+    "back": "lihui-guaidao-turbo-02.png",
+    "name": "桥本麻由美",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-turbo.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-turbo-02.png"
+    ]
+  },
+  "char:ANGE": {
+    "front": "lihui-guaidao-ange.png",
+    "back": "lihui-guaidao-ange-02.png",
+    "name": "长尾爱歌",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-ange.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-ange-02.png"
+    ]
+  },
+  "char:MAKOTO": {
+    "front": "lihui-guaidao-makoto.png",
+    "back": "lihui-guaidao-makoto-02.png",
+    "name": "结城理",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-makoto.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-makoto-02.png"
+    ]
+  },
+  "char:YUKARI": {
+    "front": "lihui-guaidao-yukari.png",
+    "back": "lihui-guaidao-yukari-02.png",
+    "name": "岳羽由加莉",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-yukari.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-yukari-02.png"
+    ]
+  },
+  "char:AKIHIKO": {
+    "front": "lihui-guaidao-akihiko.png",
+    "back": "lihui-guaidao-akihiko-02.png",
+    "name": "真田明彦",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-akihiko.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-akihiko-02.png"
+    ]
+  },
+  "char:BERRY": {
+    "front": "lihui-guaidao-berry.png",
+    "back": "lihui-guaidao-berry-02.png",
+    "name": "鹿野莓",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-berry.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-berry-02.png"
+    ]
+  },
+  "char:MARIAN·Beachflower": {
+    "front": "lihui-guaidao-marianS.png",
+    "back": "lihui-guaidao-marianS-02.png",
+    "name": "宫下美波·夏日",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-marianS.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-marianS-02.png"
+    ]
+  },
+  "char:PUPPET·Wavecatcher": {
+    "front": "lihui-guaidao-puppetS.png",
+    "back": "lihui-guaidao-puppetS-02.png",
+    "name": "佐原海夕·夏日",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-puppetS.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-puppetS-02.png"
+    ]
+  },
+  "char:BLITZ": {
+    "front": "lihui-guaidao-blitz.png",
+    "back": "lihui-guaidao-blitz-02.png",
+    "name": "片山久未",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-blitz.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-blitz-02.png"
+    ]
+  },
+  "char:BUI·Cosmic": {
+    "front": "lihui-guaidao-buiC.png",
+    "back": "lihui-guaidao-buiC-02.png",
+    "name": "YUI·幻彩",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-buiC.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-buiC-02.png"
+    ]
+  },
+  "char:KIRIJO": {
+    "front": "lihui-guaidao-mitsuru.png",
+    "back": "lihui-guaidao-mitsuru-02.png",
+    "name": "桐条美鹤",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Texture2D-20261106T125440Z-1-001\\Texture2D\\lihui-guaidao-mitsuru.png",
+      "C:\\Users\\Administrator\\Downloads\\Texture2D-20261106T125440Z-1-001\\Texture2D\\lihui-guaidao-mitsuru-02.png"
+    ]
+  },
+  "char:FUKA": {
+    "front": "lihui-guaidao-fuka.png",
+    "back": "lihui-guaidao-fuka-02.png",
+    "name": "山岸风花",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-fuka.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-fuka-02.png"
+    ]
+  },
+  "char:LUCE·Notte": {
+    "front": "lihui-guaidao-luceYY.png",
+    "back": "lihui-guaidao-luceYY-02.png",
+    "name": "池波星辉·永夜",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-luceYY.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-luceYY-02.png"
+    ]
+  },
+  "char:SOY·Pioneer": {
+    "front": "lihui-guaidao-soyTH.png",
+    "back": "lihui-guaidao-soyTH-02.png",
+    "name": "加纳骏·拓荒",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-soyTH.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-soyTH-02.png"
+    ]
+  },
+  "char:J&C": {
+    "front": "lihui-guaidao-JandC.png",
+    "back": "lihui-guaidao-JandC-02.png",
+    "name": "芮丝汀娜&卡萝莉娜",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-JandC.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-JandC-02.png"
+    ]
+  },
+  "char:JUNPEI": {
+    "front": "lihui-guaidao-junpei.png",
+    "back": "lihui-guaidao-junpei-02.png",
+    "name": "伊织顺平",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-junpei.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\lihui-guaidao-junpei-02.png"
+    ]
+  },
+  "char:CLOSER·Radiance": {
+    "front": "PC055_01_01_04_01.png",
+    "back": "PC055_01_01_04_02.png",
+    "name": "新井素羽·晴光",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC055_01_01_04_01.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC055_01_01_04_02.png"
+    ]
+  },
+  "char:AEGIS": {
+    "front": "PC063_thief_01_04_01.png",
+    "back": "PC063_thief_01_04_02.png",
+    "name": "埃癸斯",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC063_thief_01_04_01.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC063_thief_01_04_02.png"
+    ]
+  },
+  "char:JOKER·Starlight": {
+    "front": "PC056_01_01_04_01.png",
+    "back": "PC056_01_01_04_02.png",
+    "name": "雨宫莲·星舞",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC056_01_01_04_01.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC056_01_01_04_02.png"
+    ]
+  },
+  "char:MONA·Starlight": {
+    "front": "PC067_01_01_04_01.png",
+    "back": "PC067_01_01_04_02.png",
+    "name": "摩尔加纳星舞",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC067_01_01_04_01.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC067_01_01_04_02.png"
+    ]
+  },
+  "char:MIKU": {
+    "front": "PC068_01_01_04_01.png",
+    "back": "PC068_01_01_04_02.png",
+    "name": "初音未来",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC068_01_01_04_01.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC068_01_01_04_02.png"
+    ]
+  },
+  "char:PANTHER·Starlight": {
+    "front": "PC073_01_01_04_01.png",
+    "back": "PC073_01_01_04_02.png",
+    "name": "高卷杏·星舞",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC073_01_01_04_01.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC073_01_01_04_02.png"
+    ]
+  },
+  "char:CHORD·Summer": {
+    "front": "PC077_01_01_04_01.png",
+    "back": null,
+    "name": "坂井绫香·夏日",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC077_01_01_04_01.png",
+      null
+    ]
+  },
+  "char:KOTONE": {
+    "front": "PC079_01_01_04_01.png",
+    "back": "PC079_01_01_04_02.png",
+    "name": "汐见琴音",
+    "source": [
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC079_01_01_04_01.png",
+      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC079_01_01_04_02.png"
+    ]
+  }
+}

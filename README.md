@@ -168,6 +168,27 @@ data/plugin_data/astrbot_plugin_p5x_gacha_sim/p5x_gacha.sqlite3
 
 以上快捷指令也有 `/p5x` 形式，例如 `/p5x 卡池帮助`、`/p5x 卡池`、`/p5x 签到`、`/p5x 次数`、`/p5x 十连`、`/p5x 队伍`。
 
+### 不带斜杠的指令（可选）
+
+在插件配置中开启 **兼容不带斜杠的指令**（`enable_plain_commands`），保存并重载后，可以直接发送：
+
+```text
+十连
+十连 哈姆子
+十连 武器池
+卡池
+卡池帮助
+签到
+抽卡次数
+队伍
+队伍 2
+p5x 保底
+```
+
+默认关闭，原有带 `/` 的指令始终保留。开启后，常用快捷指令及 `p5x` 子指令均支持省略 `/`；`刷新` 仍需管理员白名单权限。指令名与参数之间用空格分隔，只识别从消息开头开始的完整指令，不匹配普通聊天中夹带的关键词。
+
+无斜杠的「签到」「刷新」等名称可能与其他插件重名，请按需开启。该开关只控制本插件新增的兼容入口；AstrBot 自身的唤醒前缀、私聊或 @ 唤醒行为仍按宿主设置生效。
+
 ### 其他指令
 
 | 指令 | 作用 |
@@ -232,6 +253,7 @@ data/plugin_data/astrbot_plugin_p5x_gacha_sim/p5x_gacha.sqlite3
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
+| `enable_plain_commands` | `false` | 兼容不带 `/` 的快捷指令与 `p5x` 子指令，默认关闭 |
 | `enable_rendering` | `true` | 启用结果、卡池和队伍图片；关闭后使用文字。静态 `/卡池帮助` 仍发送图片 |
 | `enable_history_recording` | `true` | 保存四五星逐条记录；关闭仍保存保底、额度和队伍，并计算满阶返还 |
 | `daily_draw_limit` | `10` | 每日基础抽数，非负整数 |
@@ -279,7 +301,7 @@ data/plugin_data/astrbot_plugin_p5x_gacha_sim/p5x_gacha.sqlite3
 
 ## 维护与开发
 
-- [更新记录：v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
+- [更新记录：v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
 - [素材说明](assets/README.md) · [图层说明](assets/character_layers/README.md) · [数据与素材准备清单](docs/准备清单.md)
 - 卡池配置：`data/banners.json`；角色／武器条目：`data/items/`。
 - 角色定位：`assets/character_layers/placement.json`；低星人格面具定位：`assets/persona_placement.json`。
@@ -301,6 +323,7 @@ python tools/review_placements.py
 
 - [AstrBot](https://github.com/AstrBotDevs/AstrBot)：机器人框架。
 - [astrbot_plugin_ww_gacha_sim](https://github.com/HoshiKurea/astrbot_plugin_ww_gacha_sim)：架构参考。
+- [astrbot_plugin_pic_toolbox](https://github.com/Yamabuki-Kirio/astrbot_plugin_pic_toolbox)：消息监听与无斜杠指令解析方式参考。
 - 「夜幕档案」每日运势功能：QQ 头像与昵称获取方式参考。
 - 角色、人格面具、武器和游戏界面素材的权利归原权利人所有；本项目为非官方同人模拟工具，与官方无关。教程图含 AI 生成插画。
 

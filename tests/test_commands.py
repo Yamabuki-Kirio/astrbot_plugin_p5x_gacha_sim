@@ -9,6 +9,8 @@ import pytest
 ROOT=Path(__file__).resolve().parents[1]
 
 class Filters:
+    def event_message_type(self,*args,**kwargs):
+        return lambda f:f
     def command(self,*args,**kwargs):
         return lambda f:f
     def command_group(self,*args,**kwargs):
@@ -20,6 +22,7 @@ class Filters:
 class Event:
     def __init__(self,message=''):self.message_str=message
     def get_message_str(self):return self.message_str
+    def stop_event(self):self.stopped=True
     def get_platform_id(self):return 'qq'
     def get_sender_id(self):return '123'
     def get_sender_name(self):return '玩家'
@@ -29,12 +32,13 @@ class Event:
 @pytest.fixture
 def plugin(monkeypatch,tmp_path):
     filters=Filters()
-    for name in ('astrbot','astrbot.api','astrbot.api.event','astrbot.api.star','astrbot.core','astrbot.core.message','astrbot.core.message.components'):
+    for name in ('astrbot','astrbot.api','astrbot.api.event','astrbot.api.event.filter','astrbot.api.star','astrbot.core','astrbot.core.message','astrbot.core.message.components'):
         monkeypatch.setitem(sys.modules,name,types.ModuleType(name))
     api=sys.modules['astrbot.api']; api.AstrBotConfig=dict
     api.logger=types.SimpleNamespace(exception=lambda *a:None,error=lambda *a:None,info=lambda *a:None)
     sys.modules['astrbot.api.event'].AstrMessageEvent=Event
     sys.modules['astrbot.api.event'].filter=filters
+    sys.modules['astrbot.api.event.filter'].EventMessageType=types.SimpleNamespace(ALL=object())
     star=sys.modules['astrbot.api.star']; star.Context=object
     class Star:
         def __init__(self,context):pass
@@ -248,3 +252,39 @@ def test_pool_help_missing_asset_falls_back_to_commands(plugin, monkeypatch, tmp
     assert len(output) == 1
     assert '教程图片暂时不可用' in output[0]
     assert '/签到' in output[0] and '/队伍' in output[0]
+
+
+def test_plain_commands_default_off_and_unrelated_messages(plugin):
+    assert run(plugin.handle_plain_commands(Event('十连'))) == []
+    plugin.config['enable_plain_commands'] = True
+    for text in ('', '/十连', '我想十连', '十连抽', '卡池帮助一下', '签到 明天'):
+        event = Event(text)
+        assert run(plugin.handle_plain_commands(event)) == []
+        assert not getattr(event, 'stopped', False)
+    assert plugin.store.total_pulls('qq', '123') == 0
+
+
+def test_plain_commands_draw_once_and_preserve_target(plugin):
+    plugin.config['enable_plain_commands'] = True
+    for text, expected in [('十连', '全限定角色池'), ('十连 哈姆子', '汐见琴音'),
+                           ('p5x 十连 鬼太郎', '结城理'), ('十连 武器池', '武器池')]:
+        event = Event(text)
+        output = run(plugin.handle_plain_commands(event))
+        assert expected in output[0]
+        assert event.stopped
+    assert plugin.store.total_pulls('qq', '123') == 40
+
+
+def test_plain_signin_quota_help_team_and_admin(plugin):
+    plugin.config['enable_plain_commands'] = True
+    assert '签到成功' in run(plugin.handle_plain_commands(Event('签到')))[0]
+    assert '不可重复' in run(plugin.handle_plain_commands(Event('p5x签到')))[0]
+    assert '剩余' in run(plugin.handle_plain_commands(Event('抽卡次数')))[0]
+    assert '队伍' in run(plugin.handle_plain_commands(Event('队伍')))[0]
+    assert '页码范围' in run(plugin.handle_plain_commands(Event('队伍 2')))[0]
+    assert isinstance(run(plugin.handle_plain_commands(Event('卡池帮助')))[0][0], bytes)
+    assert '权限不足' in run(plugin.handle_plain_commands(Event('刷新')))[0]
+    plugin.config['admin_whitelist'] = ['123']
+    assert '刷新完成' in run(plugin.handle_plain_commands(Event('p5x 刷新')))[0]
+    plugin.config['enable_plain_commands'] = False
+    assert run(plugin.handle_plain_commands(Event('十连'))) == []

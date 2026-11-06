@@ -16,6 +16,7 @@ from pathlib import Path
 
 from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, filter
+from astrbot.api.event.filter import EventMessageType
 from astrbot.api.star import Context, Star, StarTools
 from astrbot.core.message.components import Image
 
@@ -167,6 +168,44 @@ class P5XGachaPlugin(Star):
     # ------------------------------------------------------------------
     # 指令
     # ------------------------------------------------------------------
+    @filter.event_message_type(EventMessageType.ALL, priority=10000)
+    async def handle_plain_commands(self, event: AstrMessageEvent):
+        """可选的无前缀入口；复用原处理器，阻止同一消息再次执行。"""
+        if not self.config.get("enable_plain_commands", False):
+            return
+        text = event.get_message_str().strip()
+        if not text or text.startswith("/"):
+            return
+        parts = text.split(maxsplit=1)
+        command, argument = parts[0], parts[1].strip() if len(parts) > 1 else ""
+        grouped = command.lower() in {"p5x", "p5x抽卡", "p5x_gacha"}
+        if grouped:
+            if not argument:
+                command = "帮助"
+            else:
+                parts = argument.split(maxsplit=1)
+                command, argument = parts[0], parts[1].strip() if len(parts) > 1 else ""
+        no_args = {
+            "卡池帮助": self.cmd_pool_help, "卡池": self.cmd_banners,
+            "签到": self.cmd_signin, "抽卡次数": self.cmd_quota,
+            "刷新": self.cmd_refresh, "p5x签到": self.cmd_signin,
+        }
+        with_args = {"十连": self.cmd_ten, "队伍": self.cmd_team}
+        if grouped:
+            no_args.update({"帮助": self.cmd_help, "次数": self.cmd_quota, "榜单": self.cmd_rank})
+            with_args.update({"单抽": self.cmd_single, "选择": self.cmd_select,
+                              "保底": self.cmd_pity, "记录": self.cmd_history,
+                              "自选": self.cmd_selector})
+        if command in no_args and not argument:
+            responses = no_args[command](event)
+        elif command in with_args:
+            responses = with_args[command](event, argument)
+        else:
+            return
+        event.stop_event()
+        async for result in responses:
+            yield result
+
     @filter.command_group("p5x", alias={"p5x抽卡", "p5x_gacha"}, priority=1)
     def p5x_group():
         """P5X 模拟抽卡入口。"""

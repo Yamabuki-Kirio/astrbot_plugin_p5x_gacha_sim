@@ -1,0 +1,14 @@
+{
+  "sources": [
+    "https://lufel.net/data/character_info.js",
+    "https://persona5thephantomx.fc2.net/blog-entry-304.html",
+    "attached phantom_archive/archive/character_aliases.py",
+    "https://w.atwiki.jp/p5xiki/pages/262.html"
+  ],
+  "rules": [
+    "多语言本名和代号来自 Lufel 在线角色数据",
+    "社区昵称沿用附带夜幕档案",
+    "形态前置/后置简称由本包中文名推导；完整本名优先，歧义返回候选"
+  ],
+  "alias_count": 386
+}

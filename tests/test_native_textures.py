@@ -92,12 +92,19 @@ def test_persona_art_has_readable_size_without_old_oversizing():
         geo = foundation_geometry(3, item.rarity)
         result = PullResult(item,item.rarity,False,1,0,0)
         art,(x,y) = renderer.art_layer(result,geo,1)
-        old = geo.height*.91/original.height
-        if original.width/original.height > .70:
-            old = min(old,geo.width*2.8/original.width)
-        assert art.height <= round(original.height*old*.90)+1
-        assert art.width <= round(geo.width*1.95)+1
-        assert max(art.width/geo.width, art.height/geo.height) >= .79, item.id
+        # 宽翼、圆形与细长主体采用不同尺寸；至少要保持可读的主体比例。
+        assert art.height <= geo.height * 1.33 + 1
+        assert art.width <= geo.width * 3.1 + 1
+        assert max(art.width/geo.width, art.height/geo.height) >= .65, item.id
+        # 实际卡槽中必须能看到足够的实体像素，不能只剩翼尖或尾巴。
+        from PIL import Image, ImageDraw, ImageStat
+        mask = Image.new("L", (1920,1080))
+        ImageDraw.Draw(mask).polygon(geo.quad, fill=255)
+        visible = Image.new("L",mask.size)
+        visible.paste(art.getchannel("A"),(x,y))
+        from PIL import ImageChops
+        ratio = ImageStat.Stat(ImageChops.multiply(visible,mask)).sum[0] / max(1,ImageStat.Stat(art.getchannel("A")).sum[0])
+        assert ratio > .10, item.id
 
 
 def test_persona_background_matches_element_at_every_slot():

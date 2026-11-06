@@ -1,0 +1,98 @@
+[
+  {
+    "code": "BERRY·Summer",
+    "side": "front",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%9D%B4%EC%B9%98%EA%B3%A0%C2%B7%EC%97%AC%EB%A6%84.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\BERRY_Summer_front.webp",
+    "bytes": 397796
+  },
+  {
+    "code": "BERRY·Summer",
+    "side": "back",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%9D%B4%EC%B9%98%EA%B3%A0%C2%B7%EC%97%AC%EB%A6%84%20-%20%ED%85%94%ED%81%AC%EC%8B%9C%EC%97%90%ED%8E%98%EC%9D%B4%EC%95%84.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\BERRY_Summer_back.webp",
+    "bytes": 1168324
+  },
+  {
+    "code": "CHORD·Summer",
+    "side": "front",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%95%84%EC%95%BC%EC%B9%B4%C2%B7%EC%97%AC%EB%A6%84.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\CHORD_Summer_front.webp",
+    "bytes": 198354
+  },
+  {
+    "code": "CHORD·Summer",
+    "side": "back",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%95%84%EC%95%BC%EC%B9%B4%C2%B7%EC%97%AC%EB%A6%84%20-%20%EC%B9%BC%EB%A6%AC%EC%98%A4%ED%8E%98.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\CHORD_Summer_back.webp",
+    "bytes": 1614306
+  },
+  {
+    "code": "ANRI",
+    "side": "front",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%95%84%EB%9E%80.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\ANRI_front.webp",
+    "bytes": 296852
+  },
+  {
+    "code": "ANRI",
+    "side": "back",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%95%84%EB%9E%80%20-%20%EC%A0%A0%ED%8B%B8%EB%A0%88%EC%8A%A4%ED%82%A4.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\ANRI_back.webp",
+    "bytes": 1722814
+  },
+  {
+    "code": "KOROMARU",
+    "side": "front",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%BD%94%EB%A1%9C%EB%A7%88%EB%A3%A8.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\KOROMARU_front.webp",
+    "bytes": 332598
+  },
+  {
+    "code": "KOROMARU",
+    "side": "back",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%BD%94%EB%A1%9C%EB%A7%88%EB%A3%A8%20-%20%EC%BC%80%EB%A5%B4%EB%B2%A0%EB%A1%9C%EC%8A%A4.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\KOROMARU_back.webp",
+    "bytes": 749996
+  },
+  {
+    "code": "PINKY",
+    "side": "front",
+    "url": "https://lufel.net/assets/img/character-detail/%EB%82%98%EB%A3%A8%EB%AF%B8.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\PINKY_front.webp",
+    "bytes": 406526
+  },
+  {
+    "code": "PINKY",
+    "side": "back",
+    "url": "https://lufel.net/assets/img/character-detail/%EB%82%98%EB%A3%A8%EB%AF%B8%20-%20%EC%95%84%EC%8A%A4%ED%85%8C%EB%A1%9C%ED%8E%98.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\PINKY_back.webp",
+    "bytes": 663688
+  },
+  {
+    "code": "CROW",
+    "side": "front",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%95%84%EC%BC%80%EC%B9%98.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\CROW_front.webp",
+    "bytes": 199572
+  },
+  {
+    "code": "CROW",
+    "side": "back",
+    "url": "https://lufel.net/assets/img/character-detail/%EC%95%84%EC%BC%80%EC%B9%98%20-%20%EB%A1%9C%EB%B9%88%ED%9B%84%EB%93%9C.webp",
+    "status": 200,
+    "path": "work\\missing_layers\\CROW_back.webp",
+    "bytes": 382744
+  }
+]

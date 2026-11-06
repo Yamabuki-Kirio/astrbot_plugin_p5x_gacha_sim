@@ -1,11 +1,11 @@
 """P5X（女神异闻录：夜幕魅影）模拟抽卡插件。
 
-指令入口 ``/p5x``，子指令：帮助 / 卡池 / 选择 / 单抽 / 十连 / 保底 / 记录 / 自选 / 榜单。
+指令入口 ``/p5x``，子指令：帮助 / 卡池 / 队伍 / 签到 / 次数 / 刷新 / 选择 / 单抽 / 十连 / 保底 / 记录 / 自选 / 榜单。
 
 设计要点
 --------
 * 机制层（``src/core``）不依赖 AstrBot，可以单独跑测试和蒙特卡洛（见 ``tools/``）；
-* 保底按 ``pity_group`` 继承：限定角色、常驻角色、限定武器、常驻武器各自计数；
+* 全限定池与对应目标池按 ``pity_group`` 共享保底；角色和武器独立计数；
 * 图片渲染失败不影响抽卡结果，文字结果一定会发出去。
 """
 
@@ -23,19 +23,33 @@ from .src.core.models import Banner
 from .src.core.registry import Registry
 from .src.core.store import Store
 from .src.render.renderer import Renderer, encode
+from .src.render.roster import render_roster
+from .src.render.team import render_team, team_pages
 from .src.services.gacha_service import GachaService
+from .src.services.identity import avatar_bytes, display_name
 
 PLUGIN_NAME = "astrbot_plugin_p5x_gacha_sim"
 
+TUTORIAL_IMAGE = Path(__file__).resolve().parent / "assets" / "tutorial" / "caroline-gacha-guide.jpg"
+
 HELP_TEXT = """P5X 模拟抽卡
-/p5x 卡池            查看所有卡池
-/p5x 选择 <编号|名称>  设置个人默认卡池
-/p5x 单抽 [卡池]      单抽
-/p5x 十连 [卡池]      十连
-/p5x 保底 [卡池]      查看保底进度
-/p5x 记录 [页码]      查看抽卡记录
-/p5x 自选 <角色名>    常驻池满 300 抽后自选 5★
-/p5x 榜单            本群 5★ 数量排行"""
+/卡池帮助           卡萝莉娜的图片版新手教程
+/卡池               一张完整限定角色目录与当前 UP
+/队伍 [页码]        已拥有的四五星角色/武器与意识/进化
+/签到               每日签到领取额外抽数
+/抽卡次数           查看今日剩余抽数和签到状态
+/刷新               白名单管理员为所有已登记用户增加10抽
+/十连 [角色名|别名]  默认抽全限定角色池，指定名字抽对应 UP 池
+/十连 武器池         全限定武器池
+/十连 武器 <角色名|武器名>  指定武器 UP 池
+/p5x 选择 <角色名|全角色池|武器池>  个人默认池
+/p5x 单抽 [角色名|卡池]  单抽
+/p5x 保底 [角色名|卡池]  查看共享保底
+/p5x 记录 [页码]      抽卡记录
+/p5x 自选 <角色名>    常驻池满300抽自选
+/p5x 榜单            5★数量排行
+角色限定池共享抽数与保底，武器限定池另行共享。
+默认每天10抽，签到额外10抽；北京时间零点重置。"""
 
 
 class P5XGachaPlugin(Star):
@@ -65,6 +79,8 @@ class P5XGachaPlugin(Star):
                 self.registry,
                 self.store,
                 record_history=bool(self.config.get("enable_history_recording", True)),
+                daily_pulls=self.config.get("daily_draw_limit", 10),
+                signin_bonus=self.config.get("daily_signin_bonus", 10),
             )
             self.renderer = Renderer(
                 assets_dir=Path(__file__).resolve().parent / "assets",
@@ -101,16 +117,23 @@ class P5XGachaPlugin(Star):
         default = self.store.get_default_banner(self._platform(event), str(event.get_sender_id()))
         if default:
             try:
-                return self.registry.banner(default)
+                found = self.registry.banner(default)
+                if found.enabled:
+                    return found
             except KeyError:
                 pass
-        configured = (self.config.get("default_banner") or "").strip()
-        if configured:
-            found = self.registry.resolve(configured)
-            if found:
-                return found
-        enabled = self.registry.enabled_banners()
-        return enabled[0] if enabled else None
+        return self.registry.configured_default(self.config)
+
+    @staticmethod
+    def _target(event, fallback=""):
+        """保留英文名中的空格；兼容带机器人前缀的消息。"""
+        import re
+        try:
+            message = event.get_message_str()
+        except (AttributeError, TypeError):
+            message = getattr(event, "message_str", "")
+        match = re.search(r"(?:^|\s)/?(?:p5x(?:抽卡|_gacha)?\s+)?(?:十连|单抽|选择|保底)\s+(.+)$", message or "", re.I)
+        return match.group(1).strip() if match else (fallback or "").strip()
 
     def _ready(self, event: AstrMessageEvent):
         if self._init_error:
@@ -130,13 +153,15 @@ class P5XGachaPlugin(Star):
             logger.exception("P5X 抽卡图片渲染失败，降级为文字")
             return None
 
-    def _footer(self, banner: Banner, state) -> str:
+    def _footer(self, banner: Banner, state, total: int, remaining: int | None = None) -> str:
         hard5 = banner.hard_pity.get(5, 80)
-        hard4 = banner.hard_pity.get(4, 10)
-        parts = [f"5★ {state.pity5}/{hard5}", f"4★ {state.pity4}/{hard4}"]
+        parts = [f"当前 {state.pity5}/{hard5}", f"累计{total}抽"]
         if banner.has_off_rate(5):
             parts.append("大保底已触发" if state.guaranteed5 else "小保底")
-        parts.append(f"本池累计 {state.total_of(banner.id)} 抽")
+        parts.append(f"共享累计{state.pulls}抽")
+        parts.append(banner.name)
+        if remaining is not None:
+            parts.append(f"今日剩余{remaining}抽")
         return "    ".join(parts)
 
     # ------------------------------------------------------------------
@@ -150,27 +175,155 @@ class P5XGachaPlugin(Star):
     async def cmd_help(self, event: AstrMessageEvent):
         yield event.plain_result(HELP_TEXT)
 
+    @p5x_group.command("卡池帮助", priority=1)
+    async def cmd_pool_help(self, event: AstrMessageEvent):
+        """发送随插件安装的静态教程，无需数据库或渲染器。"""
+        try:
+            data = await asyncio.to_thread(TUTORIAL_IMAGE.read_bytes)
+            image = Image.fromBytes(data)
+        except Exception:  # noqa: BLE001 - 资源缺失仍提供用法
+            logger.exception("P5X 教程图片读取失败，降级为文字")
+            yield event.plain_result("教程图片暂时不可用，请检查插件资源是否完整。\n" + HELP_TEXT)
+            return
+        yield event.chain_result([image])
+
+    @filter.command("卡池帮助", priority=1)
+    async def direct_pool_help(self, event: AstrMessageEvent):
+        async for result in self.cmd_pool_help(event):
+            yield result
+
     @p5x_group.command("卡池", priority=1)
     async def cmd_banners(self, event: AstrMessageEvent):
         error = self._ready(event)
         if error:
             yield error
             return
-        banners = self.registry.enabled_banners()
-        if not banners:
-            yield event.plain_result("没有启用任何卡池，请检查 data/banners.json。")
+        try:
+            default = self._resolve(event, "")
+        except ValueError as exc:
+            yield event.plain_result(f"默认卡池配置错误：{exc}")
             return
-        default = self._resolve(event, "")
-        lines = ["可用卡池："]
-        for index, banner in enumerate(banners, 1):
-            mark = " ←当前" if default and banner.id == default.id else ""
-            lines.append(f"{index}. {banner.name}（{banner.id}）{mark}")
-            lines.append(
-                f"    {banner.cost} 晶珀/抽 · 5★ 保底 {banner.hard_pity.get(5)} · "
-                f"最坏 {banner.max_pity_hint()} 抽得 UP"
-            )
-        lines.append("用 /p5x 选择 <编号> 固定个人默认卡池。")
-        yield event.plain_result("\n".join(lines))
+        characters = self.registry.limited_characters()
+        up_ids = {i.id for i in default.rate_up.get(5, ())}
+        if default.kind == "weapon":
+            up_ids = {"char:" + i.partition(":")[2].split("-weapon", 1)[0] for i in up_ids}
+        status = "当前：" + default.name
+        if not default.rate_up.get(5):
+            status += " · 五星等概率，无单独UP"
+        chain = await self._render(lambda: render_roster(
+            self.renderer, characters, 1, 1, status, up_ids))
+        if chain:
+            yield event.chain_result(chain)
+        else:
+            lines = [status, "限定角色目录："]
+            lines.extend(f"{n}. {i.name} [{i.id[5:]}]" + (" UP" if i.id in up_ids else "")
+                         for n,i in enumerate(characters,1))
+            yield event.plain_result("\n".join(lines))
+
+    @filter.command("卡池", priority=1)
+    async def direct_banners(self, event: AstrMessageEvent):
+        async for result in self.cmd_banners(event):
+            yield result
+
+    @p5x_group.command("队伍", priority=1)
+    async def cmd_team(self, event: AstrMessageEvent, page: str = ""):
+        error = self._ready(event)
+        if error:
+            yield error
+            return
+        owned = await asyncio.to_thread(self.service.team_of, self._platform(event), str(event.get_sender_id()))
+        pages = team_pages(owned)
+        if page and (not page.isdigit() or not 1 <= int(page) <= len(pages)):
+            yield event.plain_result(f"队伍页码范围：1—{len(pages)}。")
+            return
+        selected = [int(page)-1] if page else range(len(pages))
+        quota = await asyncio.to_thread(self.service.quota_of, self._platform(event), str(event.get_sender_id()))
+        avatar = await asyncio.to_thread(avatar_bytes, event) if self.config.get("enable_rendering", True) else None
+        characters = sum(e.item.id.startswith("char:") for e in owned)
+        for index in selected:
+            rows = pages[index]
+            chain = await self._render(lambda rows=rows,index=index: render_team(
+                self.renderer, rows, self.registry, display_name(event), index+1, len(pages),
+                characters, len(owned)-characters, quota.remaining, avatar))
+            if chain:
+                yield event.chain_result(chain)
+            else:
+                lines = [f"{display_name(event)}的队伍（{index+1}/{len(pages)}） · 今日可抽 {quota.remaining} 抽"]
+                if not owned:
+                    lines.append("尚未获得四、五星角色或武器，发送 /十连 开始收集。")
+                for row in rows:
+                    for entry in row:
+                        lines.append(f"{entry.item.rarity}★ {entry.item.name} · {entry.label} {entry.level}/6" + (" · 满阶" if entry.maxed else ""))
+                yield event.plain_result("\n".join(lines))
+
+    @filter.command("队伍", priority=1)
+    async def direct_team(self, event: AstrMessageEvent, page: str = ""):
+        async for result in self.cmd_team(event, page):
+            yield result
+
+    @p5x_group.command("签到", priority=1)
+    async def cmd_signin(self, event: AstrMessageEvent):
+        error = self._ready(event)
+        if error:
+            yield error
+            return
+        quota, claimed = await asyncio.to_thread(
+            self.service.signin, self._platform(event), str(event.get_sender_id()))
+        if claimed:
+            message = f"签到成功，获得 {self.service.signin_bonus} 抽！"
+        else:
+            message = "今天已经签到过了，奖励不可重复领取。"
+        yield event.plain_result(f"{message}\n今日剩余 {quota.remaining} 抽 · 已抽 {quota.used} 抽\n北京时间零点刷新，剩余额度不结转。")
+
+    @filter.command("签到", alias={"p5x签到"}, priority=1)
+    async def direct_signin(self, event: AstrMessageEvent):
+        async for result in self.cmd_signin(event):
+            yield result
+
+    @p5x_group.command("次数", priority=1)
+    async def cmd_quota(self, event: AstrMessageEvent):
+        error = self._ready(event)
+        if error:
+            yield error
+            return
+        quota = await asyncio.to_thread(self.service.quota_of, self._platform(event), str(event.get_sender_id()))
+        signed = "已签到" if quota.signed else f"未签到，/签到 可再领 {self.service.signin_bonus} 抽"
+        yield event.plain_result(f"今日剩余 {quota.remaining} 抽 · 已抽 {quota.used} 抽\n每日基础 {quota.base} 抽 · 额外获得 {quota.bonus} 抽\n{signed}\n北京时间零点刷新，剩余额度不结转。")
+
+    @filter.command("抽卡次数", priority=1)
+    async def direct_quota(self, event: AstrMessageEvent):
+        async for result in self.cmd_quota(event):
+            yield result
+
+    def _quota_admin(self, event):
+        # 附带关键词插件使用黑名单放行，此处按要求改为仅白名单授权。
+        users = self.config.get("admin_whitelist", [])
+        if not isinstance(users, (list, tuple, set)):
+            return False
+        user_id = str(event.get_sender_id()).strip()
+        return bool(user_id) and user_id in {str(uid).strip() for uid in users}
+
+    @p5x_group.command("刷新", priority=1)
+    async def cmd_refresh(self, event: AstrMessageEvent):
+        if not self._quota_admin(event):
+            yield event.plain_result("权限不足：只有抽卡管理员白名单中的用户可以执行 /刷新。")
+            return
+        error = self._ready(event)
+        if error:
+            yield error
+            return
+        count = await asyncio.to_thread(self.service.refresh_all)
+        yield event.plain_result(f"刷新完成：已为 {count} 位已登记用户各增加 10 抽。\n剩余 0→10、10→20、20→30；签到状态保持不变。")
+
+    @filter.command("刷新", priority=1)
+    async def direct_refresh(self, event: AstrMessageEvent):
+        async for result in self.cmd_refresh(event):
+            yield result
+
+    @filter.command("十连", priority=1)
+    async def direct_ten(self, event: AstrMessageEvent, target: str = ""):
+        async for result in self.cmd_ten(event, target):
+            yield result
 
     @p5x_group.command("选择", priority=1)
     async def cmd_select(self, event: AstrMessageEvent, target: str = ""):
@@ -178,17 +331,18 @@ class P5XGachaPlugin(Star):
         if error:
             yield error
             return
+        target = self._target(event, target)
         if not target:
             yield event.plain_result("用法：/p5x 选择 <编号|卡池名|卡池 id>")
             return
         banner = None
         if target.isdigit():
-            banners = self.registry.enabled_banners()
+            characters = self.registry.limited_characters()
             index = int(target) - 1
-            banner = banners[index] if 0 <= index < len(banners) else None
+            banner = self.registry.resolve_character(characters[index].name) if 0 <= index < len(characters) else None
         banner = banner or self.registry.resolve(target)
         if banner is None:
-            yield event.plain_result(f"没有找到卡池「{target}」。可以先发送 /p5x 卡池 查看编号。")
+            yield event.plain_result(self.registry.selection_error(target))
             return
         self.store.set_default_banner(self._platform(event), str(event.get_sender_id()), banner.id)
         yield event.plain_result(f"已把默认卡池设为「{banner.name}」。")
@@ -199,9 +353,14 @@ class P5XGachaPlugin(Star):
         if error:
             yield error
             return
-        banner = self._resolve(event, target)
+        target = self._target(event, target)
+        try:
+            banner = self._resolve(event, target)
+        except ValueError as exc:
+            yield event.plain_result(f"默认卡池配置错误：{exc}")
+            return
         if banner is None:
-            yield event.plain_result("没有找到卡池，请先 /p5x 卡池 查看。")
+            yield event.plain_result(self.registry.selection_error(target))
             return
         try:
             outcome = await asyncio.to_thread(
@@ -215,17 +374,22 @@ class P5XGachaPlugin(Star):
             yield event.plain_result("抽卡时发生错误，已记录日志。")
             return
 
-        text = self.service.format_single(outcome)
+        total = self.store.total_pulls(self._platform(event), str(event.get_sender_id()))
+        avatar = await asyncio.to_thread(avatar_bytes, event) if self.config.get("enable_rendering", True) else None
+        text = self.service.format_single(outcome) + f"\n累计{total}抽 · 今日剩余 {outcome.remaining} 抽"
         chain = await self._render(
             lambda: self.renderer.render_single(
                 outcome.results[0],
                 banner,
-                user_name=self._nickname(event),
-                footer=self._footer(banner, outcome.state),
+                user_name=display_name(event),
+                avatar=avatar,
+                footer=self._footer(banner, outcome.state, total, outcome.remaining),
             )
         )
         if chain:
             yield event.chain_result(chain)
+            if outcome.overflow_bonus:
+                yield event.plain_result(f"满阶重复返还 {outcome.overflow_bonus} 抽，已加入今日额度；当前剩余 {outcome.remaining} 抽。")
         else:
             yield event.plain_result(text)
 
@@ -235,9 +399,14 @@ class P5XGachaPlugin(Star):
         if error:
             yield error
             return
-        banner = self._resolve(event, target)
+        target = self._target(event, target)
+        try:
+            banner = self._resolve(event, target)
+        except ValueError as exc:
+            yield event.plain_result(f"默认卡池配置错误：{exc}")
+            return
         if banner is None:
-            yield event.plain_result("没有找到卡池，请先 /p5x 卡池 查看。")
+            yield event.plain_result(self.registry.selection_error(target))
             return
         try:
             outcome = await asyncio.to_thread(
@@ -251,17 +420,22 @@ class P5XGachaPlugin(Star):
             yield event.plain_result("抽卡时发生错误，已记录日志。")
             return
 
-        text = self.service.format_ten(outcome)
+        total = self.store.total_pulls(self._platform(event), str(event.get_sender_id()))
+        avatar = await asyncio.to_thread(avatar_bytes, event) if self.config.get("enable_rendering", True) else None
+        text = self.service.format_ten(outcome) + f"\n累计{total}抽 · 今日剩余 {outcome.remaining} 抽"
         chain = await self._render(
             lambda: self.renderer.render_ten(
                 outcome.results,
                 banner,
-                user_name=self._nickname(event),
-                footer=self._footer(banner, outcome.state),
+                user_name=display_name(event),
+                avatar=avatar,
+                footer=self._footer(banner, outcome.state, total, outcome.remaining),
             )
         )
         if chain:
             yield event.chain_result(chain)
+            if outcome.overflow_bonus:
+                yield event.plain_result(f"满阶重复返还 {outcome.overflow_bonus} 抽，已加入今日额度；当前剩余 {outcome.remaining} 抽。")
         else:
             yield event.plain_result(text)
 
@@ -271,12 +445,18 @@ class P5XGachaPlugin(Star):
         if error:
             yield error
             return
-        banner = self._resolve(event, target)
+        target = self._target(event, target)
+        try:
+            banner = self._resolve(event, target)
+        except ValueError as exc:
+            yield event.plain_result(f"默认卡池配置错误：{exc}")
+            return
         if banner is None:
             yield event.plain_result("没有找到卡池。")
             return
         state = self.service.state_of(self._platform(event), str(event.get_sender_id()), banner)
-        yield event.plain_result(self.service.format_pity(banner, state))
+        quota = await asyncio.to_thread(self.service.quota_of, self._platform(event), str(event.get_sender_id()))
+        yield event.plain_result(self.service.format_pity(banner, state) + f"\n今日剩余 {quota.remaining} 抽（北京时间零点刷新）")
 
     @p5x_group.command("记录", priority=1)
     async def cmd_history(self, event: AstrMessageEvent, arg: str = ""):

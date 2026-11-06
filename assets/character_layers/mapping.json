@@ -549,12 +549,12 @@
     ]
   },
   "char:CHORD·Summer": {
-    "front": "PC077_01_01_04_01.png",
-    "back": null,
-    "name": "坂井绫香·夏日",
+    "front": "lufel-CHORD_Summer-front.png",
+    "back": "lufel-CHORD_Summer-back.png",
+    "name": "CHORD·Summer",
     "source": [
-      "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC077_01_01_04_01.png",
-      null
+      "https://lufel.net/assets/img/character-detail/%EC%95%84%EC%95%BC%EC%B9%B4%C2%B7%EC%97%AC%EB%A6%84.webp",
+      "https://lufel.net/assets/img/character-detail/%EC%95%84%EC%95%BC%EC%B9%B4%C2%B7%EC%97%AC%EB%A6%84%20-%20%EC%B9%BC%EB%A6%AC%EC%98%A4%ED%8E%98.webp"
     ]
   },
   "char:KOTONE": {
@@ -564,6 +564,51 @@
     "source": [
       "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC079_01_01_04_01.png",
       "C:\\Users\\Administrator\\Downloads\\Sprite-20261106T134141Z-1-001\\Sprite\\PC079_01_01_04_02.png"
+    ]
+  },
+  "char:ANRI": {
+    "front": "lufel-ANRI-front.png",
+    "back": "lufel-ANRI-back.png",
+    "name": "ANRI",
+    "source": [
+      "https://lufel.net/assets/img/character-detail/%EC%95%84%EB%9E%80.webp",
+      "https://lufel.net/assets/img/character-detail/%EC%95%84%EB%9E%80%20-%20%EC%A0%A0%ED%8B%B8%EB%A0%88%EC%8A%A4%ED%82%A4.webp"
+    ]
+  },
+  "char:CROW": {
+    "front": "lufel-CROW-front.png",
+    "back": "lufel-CROW-back.png",
+    "name": "CROW",
+    "source": [
+      "https://lufel.net/assets/img/character-detail/%EC%95%84%EC%BC%80%EC%B9%98.webp",
+      "https://lufel.net/assets/img/character-detail/%EC%95%84%EC%BC%80%EC%B9%98%20-%20%EB%A1%9C%EB%B9%88%ED%9B%84%EB%93%9C.webp"
+    ]
+  },
+  "char:PINKY": {
+    "front": "lufel-PINKY-front.png",
+    "back": "lufel-PINKY-back.png",
+    "name": "PINKY",
+    "source": [
+      "https://lufel.net/assets/img/character-detail/%EB%82%98%EB%A3%A8%EB%AF%B8.webp",
+      "https://lufel.net/assets/img/character-detail/%EB%82%98%EB%A3%A8%EB%AF%B8%20-%20%EC%95%84%EC%8A%A4%ED%85%8C%EB%A1%9C%ED%8E%98.webp"
+    ]
+  },
+  "char:KOROMARU": {
+    "front": "lufel-KOROMARU-front.png",
+    "back": "lufel-KOROMARU-back.png",
+    "name": "KOROMARU",
+    "source": [
+      "https://lufel.net/assets/img/character-detail/%EC%BD%94%EB%A1%9C%EB%A7%88%EB%A3%A8.webp",
+      "https://lufel.net/assets/img/character-detail/%EC%BD%94%EB%A1%9C%EB%A7%88%EB%A3%A8%20-%20%EC%BC%80%EB%A5%B4%EB%B2%A0%EB%A1%9C%EC%8A%A4.webp"
+    ]
+  },
+  "char:BERRY·Summer": {
+    "front": "lufel-BERRY_Summer-front.png",
+    "back": "lufel-BERRY_Summer-back.png",
+    "name": "BERRY·Summer",
+    "source": [
+      "https://lufel.net/assets/img/character-detail/%EC%9D%B4%EC%B9%98%EA%B3%A0%C2%B7%EC%97%AC%EB%A6%84.webp",
+      "https://lufel.net/assets/img/character-detail/%EC%9D%B4%EC%B9%98%EA%B3%A0%C2%B7%EC%97%AC%EB%A6%84%20-%20%ED%85%94%ED%81%AC%EC%8B%9C%EC%97%90%ED%8E%98%EC%9D%B4%EC%95%84.webp"
     ]
   }
 }

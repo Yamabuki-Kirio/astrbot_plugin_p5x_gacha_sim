@@ -111,8 +111,8 @@ def test_only_high_rarity_has_glow(renderer):
         assert (canvas.getbbox() is not None) == (rarity >= 4)
 
 
-def test_canvas_is_16_by_9():
-    assert (DESIGN_W, DESIGN_H) == (1920, 1080)
+def test_canvas_matches_reference_widescreen_aspect():
+    assert abs(DESIGN_W / DESIGN_H - 1280 / 582) < .001
 
 
 def test_effect_limits_and_stable_identity(renderer):
@@ -127,15 +127,16 @@ def test_effect_limits_and_stable_identity(renderer):
 
 
 def test_deterministic_output_and_scaled_framing(registry, renderer):
-    from PIL import Image, ImageChops
+    from PIL import Image, ImageChops, ImageOps
     results = _mixed(registry)
     first = renderer.render_ten(results)
     assert renderer.render_ten(results).tobytes() == first.tobytes()
     small = renderer.render_ten(results, size=(960,540))
-    expected = first.resize((960,540), Image.Resampling.LANCZOS)
+    expected = ImageOps.pad(first, (960,540), Image.Resampling.LANCZOS, color=(5,6,9))
     assert ImageChops.difference(small, expected).getbbox() is None
     square = renderer.render_ten(results, size=(960,960))
-    assert square.crop((0,210,960,750)).tobytes() == small.tobytes()
+    expected_square = ImageOps.pad(first, (960,960), Image.Resampling.LANCZOS, color=(5,6,9))
+    assert square.tobytes() == expected_square.tobytes()
 
 
 def test_background_preserves_source_aspect(tmp_path):
@@ -159,9 +160,9 @@ def test_weapon_palette_ignores_persona_element(renderer):
 
 
 def test_blue_cutline_stays_above_effects(registry, renderer):
-    expected = renderer._background((DESIGN_W,DESIGN_H)).getpixel((1900,990))[:3]
+    expected = renderer._background((DESIGN_W,DESIGN_H)).getpixel((1900,round(DESIGN_H*990/1080)))[:3]
     assert expected == (0,38,196)
-    assert renderer.render_ten(_mixed(registry)).getpixel((1900,990)) == expected
+    assert renderer.render_ten(_mixed(registry)).getpixel((1900,round(DESIGN_H*990/1080))) == expected
 
 
 def test_persona_elements_have_sources(registry):
@@ -341,7 +342,7 @@ def test_high_rarity_is_centered_without_changing_geometry(registry, renderer):
     results = _mixed(registry)
     changed = [_r(result.item, 2, index=i + 1) for i, result in enumerate(results)]
     arranged = renderer._centered_result_slots(results)
-    assert arranged[4].rarity == max(result.rarity for result in results)
+    assert arranged[5].rarity == max(result.rarity for result in results)
     assert renderer.render_ten(results).tobytes() != renderer.render_ten(changed).tobytes()
 
 

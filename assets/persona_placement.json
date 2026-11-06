@@ -1,0 +1,504 @@
+{
+  "persona:伊西斯": {
+    "focus": [
+      0.48,
+      0.15
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:佛劳洛斯": {
+    "focus": [
+      0.5,
+      0.3
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:佳塔由": {
+    "focus": [
+      0.38,
+      0.57
+    ],
+    "max_width": 3.1,
+    "target_y": 0.29,
+    "max_height": 1.32
+  },
+  "persona:克洛托": {
+    "focus": [
+      0.48,
+      0.13
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:八咫乌": {
+    "focus": [
+      0.3,
+      0.14
+    ],
+    "max_width": 1.9,
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:兰达": {
+    "focus": [
+      0.46,
+      0.22
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:单卡拉比": {
+    "focus": [
+      0.5,
+      0.35
+    ],
+    "max_width": 1.95,
+    "target_y": 0.44,
+    "max_height": 0.98
+  },
+  "persona:基力梅卡拉": {
+    "focus": [
+      0.52,
+      0.39
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:增长天王": {
+    "focus": [
+      0.45,
+      0.29
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:天蛾人": {
+    "focus": [
+      0.52,
+      0.23
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:女武神": {
+    "focus": [
+      0.49,
+      0.2
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:密特拉": {
+    "focus": [
+      0.34,
+      0.19
+    ],
+    "max_width": 1.9,
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:巴隆": {
+    "focus": [
+      0.65,
+      0.43
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:托特": {
+    "focus": [
+      0.36,
+      0.33
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:斯卡哈": {
+    "focus": [
+      0.64,
+      0.15
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:斯尔特": {
+    "focus": [
+      0.4,
+      0.17
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:水鬼": {
+    "focus": [
+      0.68,
+      0.13
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:百臂巨人": {
+    "focus": [
+      0.51,
+      0.3
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:睡魔": {
+    "focus": [
+      0.5,
+      0.25
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:米特拉斯": {
+    "focus": [
+      0.43,
+      0.17
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:红骑士": {
+    "focus": [
+      0.6,
+      0.34
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:罗刹": {
+    "focus": [
+      0.43,
+      0.26
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:羽蛇神": {
+    "focus": [
+      0.35,
+      0.46
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:能天使": {
+    "focus": [
+      0.53,
+      0.2
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:荒魂": {
+    "focus": [
+      0.43,
+      0.28
+    ],
+    "max_width": 1.95,
+    "target_y": 0.44,
+    "max_height": 0.98
+  },
+  "persona:菊理媛": {
+    "focus": [
+      0.42,
+      0.11
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:虹蛇": {
+    "focus": [
+      0.62,
+      0.47
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:迦楼罗": {
+    "focus": [
+      0.49,
+      0.55
+    ],
+    "max_width": 3.1,
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:迦温": {
+    "focus": [
+      0.41,
+      0.48
+    ],
+    "target_y": 0.44,
+    "max_height": 0.98,
+    "max_width": 1.95
+  },
+  "persona:那伽": {
+    "focus": [
+      0.3,
+      0.14
+    ],
+    "target_y": 0.29,
+    "max_height": 1.32,
+    "max_width": 3.1
+  },
+  "persona:那伽王": {
+    "focus": [
+      0.4,
+      0.18
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:风鬼": {
+    "focus": [
+      0.51,
+      0.1
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:黑软泥怪": {
+    "focus": [
+      0.65,
+      0.34
+    ],
+    "max_width": 2.6,
+    "target_y": 0.4,
+    "max_height": 1.12
+  },
+  "persona:一本踏鞴": {
+    "focus": [
+      0.55,
+      0.14
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:克鲁波克鲁": {
+    "focus": [
+      0.45,
+      0.6
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:凯尔派": {
+    "focus": [
+      0.69,
+      0.18
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:双角兽": {
+    "focus": [
+      0.35,
+      0.38
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:和魂": {
+    "focus": [
+      0.59,
+      0.62
+    ],
+    "max_width": 1.95,
+    "target_y": 0.44,
+    "max_height": 0.98
+  },
+  "persona:奇魂": {
+    "focus": [
+      0.68,
+      0.51
+    ],
+    "max_width": 1.95,
+    "target_y": 0.44,
+    "max_height": 0.98
+  },
+  "persona:安德拉斯": {
+    "focus": [
+      0.52,
+      0.15
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:山灵": {
+    "focus": [
+      0.4,
+      0.43
+    ],
+    "max_width": 1.95,
+    "target_y": 0.44,
+    "max_height": 0.98
+  },
+  "persona:幸魂": {
+    "focus": [
+      0.35,
+      0.52
+    ],
+    "max_width": 1.95,
+    "target_y": 0.44,
+    "max_height": 0.98
+  },
+  "persona:曼陀罗": {
+    "focus": [
+      0.5,
+      0.31
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:木叶天狗": {
+    "focus": [
+      0.6,
+      0.22
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:木灵": {
+    "focus": [
+      0.59,
+      0.16
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:朱雀": {
+    "focus": [
+      0.39,
+      0.44
+    ],
+    "max_width": 3.1,
+    "target_y": 0.29,
+    "max_height": 1.32
+  },
+  "persona:杰克灯笼": {
+    "focus": [
+      0.65,
+      0.33
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:欧若博司": {
+    "focus": [
+      0.45,
+      0.27
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:犬神": {
+    "focus": [
+      0.6,
+      0.17
+    ],
+    "max_width": 2.3,
+    "target_y": 0.25,
+    "max_height": 1.32,
+    "flip_x": true
+  },
+  "persona:狮爷": {
+    "focus": [
+      0.48,
+      0.36
+    ],
+    "max_width": 3.1,
+    "target_y": 0.29,
+    "max_height": 1.32
+  },
+  "persona:猫又": {
+    "focus": [
+      0.57,
+      0.1
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:皮克希": {
+    "focus": [
+      0.42,
+      0.38
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:真神": {
+    "focus": [
+      0.72,
+      0.33
+    ],
+    "max_width": 2.3,
+    "target_y": 0.25,
+    "max_height": 1.32,
+    "flip_x": true
+  },
+  "persona:花魄": {
+    "focus": [
+      0.62,
+      0.22
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:莫克伊": {
+    "focus": [
+      0.57,
+      0.15
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:软泥怪": {
+    "focus": [
+      0.43,
+      0.3
+    ],
+    "max_width": 2.6,
+    "target_y": 0.4,
+    "max_height": 1.12
+  },
+  "persona:阴摩罗鬼": {
+    "focus": [
+      0.6,
+      0.4
+    ],
+    "target_y": 0.44,
+    "max_height": 0.98,
+    "max_width": 1.95
+  },
+  "persona:阿珈席翁": {
+    "focus": [
+      0.35,
+      0.26
+    ],
+    "max_width": 2.6,
+    "target_y": 0.4,
+    "max_height": 1.12
+  },
+  "persona:飞天": {
+    "focus": [
+      0.49,
+      0.16
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  },
+  "persona:高等皮克希": {
+    "focus": [
+      0.65,
+      0.46
+    ],
+    "target_y": 0.29,
+    "max_height": 1.16
+  }
+}

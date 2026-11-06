@@ -8,19 +8,62 @@
   "enable_history_recording": {
     "description": "是否记录抽卡历史",
     "type": "bool",
-    "hint": "关闭后仍会保存保底状态，只是不写历史记录",
+    "hint": "只控制四五星角色/武器的逐条记录；关闭后仍保存队伍收藏、意识/进化、保底和每日额度。",
     "default": true
   },
   "default_banner": {
     "description": "默认卡池",
     "type": "string",
-    "hint": "用户没执行 /p5x 选择 时使用的卡池 id，例如 char_limited；留空则用第一个启用卡池",
-    "default": "char_limited"
+    "hint": "兼容旧配置；旧 char_limited 自动迁移到全限定角色池。优先使用下方类型和目标配置。",
+    "default": ""
   },
   "font_path": {
     "description": "中文字体路径",
     "type": "string",
     "hint": "留空自动查找系统字体（Windows 优先 msyhbd.ttc）",
     "default": ""
+  },
+  "default_pool_type": {
+    "description": "默认抽取类型",
+    "type": "string",
+    "options": [
+      "character",
+      "weapon"
+    ],
+    "default": "character",
+    "hint": "character：全限定角色池；weapon：全限定武器池。"
+  },
+  "selected_character": {
+    "description": "默认 UP 角色",
+    "type": "string",
+    "default": "",
+    "hint": "留空为全限定角色池；可填完整角色名、代号或别名，例如 汐见琴音、哈姆子。"
+  },
+  "selected_weapon": {
+    "description": "默认 UP 武器",
+    "type": "string",
+    "default": "",
+    "hint": "留空为全限定武器池；填武器名或所属限定角色名。"
+  },
+  "daily_draw_limit": {
+    "description": "每日基础可抽次数",
+    "type": "int",
+    "default": 10,
+    "hint": "按北京时间零点重置；所有角色池、武器池和单抽/十连共用，未使用次数不结转。"
+  },
+  "daily_signin_bonus": {
+    "description": "每日签到奖励抽数",
+    "type": "int",
+    "default": 10,
+    "hint": "每天仅能领取一次，发送 /签到 领取；零点随每日额度一起刷新。"
+  },
+  "admin_whitelist": {
+    "description": "抽卡管理员白名单",
+    "type": "list",
+    "items": {
+      "type": "string"
+    },
+    "default": [],
+    "hint": "填入允许执行 /刷新 的用户ID（QQ号），每行一个。不填则无人能执行刷新。只控制本插件管理权限。"
   }
 }

@@ -1,7 +1,7 @@
 name: astrbot_plugin_p5x_gacha_sim
 display_name: P5X 模拟抽卡
-desc: 女神异闻录：夜幕魅影（P5X）模拟抽卡：角色/武器契约概率、80/70 抽保底、50-50 小保底继承、抽卡记录与图片结果。
-version: v0.1.1
+desc: 女神异闻录：夜幕魅影（P5X）模拟抽卡：角色/武器契约概率、80/70 抽保底、50-50 小保底继承、每日额度、签到、白名单刷新、四五星队伍收藏、意识进化与满阶返还。
+version: v0.3.1
 author: Yamabuki-Kirio
 repo: https://github.com/Yamabuki-Kirio/astrbot_plugin_p5x_gacha_sim
 astrbot_version: ">=4.27.5"

@@ -1,6 +1,6 @@
 """P5X 风格抽卡结果渲染。
 
-布局参考游戏内十连结果页（1920×1080 设计画布）：
+布局参考游戏内十连结果页（1920×873 设计画布）：
 
 * 10 条倾斜的四边形色带，统一倾角、高低错落、互相遮压；
 * 立绘以海报方式贴进色带并被裁切，只有 5★ 会整体前凸盖住相邻结果；
@@ -26,7 +26,13 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps, 
 from ..core.mechanics import PullResult
 from ..core.models import Banner, Item
 
-DESIGN_W, DESIGN_H = 1920, 1080
+DESIGN_W, DESIGN_H = 1920, 873
+
+# 卡内边缘光与卡外背光共用光源；角色身份只改变碎光位置，不改变亮度和光束尺寸。
+CARD_LIGHTING = {
+    4: {"tint": (255, 206, 76), "halo_alpha": 100, "reach": 62, "haze_alpha": 85},
+    5: {"tint": (193, 115, 255), "halo_alpha": 175, "reach": 115, "haze_alpha": 140},
+}
 
 # ---------------------------------------------------------------------------
 # 稀有度视觉
@@ -128,10 +134,10 @@ LATIN_FONT_CANDIDATES = [
 ]
 
 # ---------------------------------------------------------------------------
-# 布局：保留旧坐标的错落节奏，随后重新映射到 1920×1080 设计画布。
+# 布局：保留旧坐标的错落节奏，随后重新映射到 1920×873 设计画布。
 # x 为色带顶边左端。截图里的色带向左下方倾斜，因此底边必须在顶边左侧。
 # ---------------------------------------------------------------------------
-SLANT = -140
+SLANT = -164
 CARD_LAYOUT: tuple[tuple[int, int, int, int], ...] = (
     # (x, width, top, bottom)。最终横坐标会按实际抽取结果重新紧密排列。
     (260, 156, 148, 744),
@@ -146,8 +152,8 @@ CARD_LAYOUT: tuple[tuple[int, int, int, int], ...] = (
     (1538, 156, 144, 750),
 )
 
-# 16:9 画布重新布局，非对最终图像纵向拉伸；所有素材仍按原宽高比绘制。
-CARD_LAYOUT = tuple((x, w, round(top * 1.18 + 24), round(bottom * 1.18 + 24))
+# 宽屏参考画幅重新布局，非对最终图像纵向拉伸；所有素材仍按原宽高比绘制。
+CARD_LAYOUT = tuple((x, w, round((top * 1.18 + 24) * DESIGN_H / 1080), round((bottom * 1.18 + 24) * DESIGN_H / 1080))
                     for x, w, top, bottom in CARD_LAYOUT)
 
 FOUNDATION_RARITY_STYLE = {
@@ -155,7 +161,7 @@ FOUNDATION_RARITY_STYLE = {
     3: {"light": (103, 101, 23), "dark": (37, 37, 5), "width": 142, "grow_top": 0, "grow_bottom": 0},
     4: {"light": (153, 114, 32), "dark": (45, 31, 8), "width": 142, "grow_top": 0, "grow_bottom": 0},
     # 5★ 使用接近钻石折射的冷白蓝紫色，后续星级贴图会继续覆盖在其上。
-    5: {"light": (33, 39, 108), "dark": (12, 9, 47), "width": 174, "grow_top": 34, "grow_bottom": 50},
+    5: {"light": (33, 39, 108), "dark": (12, 9, 47), "width": 154, "grow_top": 34, "grow_bottom": 50},
 }
 # 5★ 的前凸量（相对自身色带，按比例）
 FIVE_STAR_BOOST = {"width": 1.06, "height": 1.06, "dx": -0.03, "top": 16}
@@ -220,11 +226,14 @@ def foundation_geometry(index: int, rarity: int, window: int | None = None) -> C
     base = card_geometry(index, 2, window=window)
     rarity = max(2, min(5, rarity))
     spec = FOUNDATION_RARITY_STYLE[rarity]
-    target_width = 156 if rarity < 5 else spec["width"]
+    target_width = 134 if rarity < 5 else spec["width"]
     dx = (target_width - base.width) / 2
     (tlx, tly), (_trx, _), (_brx, bry), (blx, _) = base.quad
     top = tly - spec["grow_top"]
     bottom = bry + spec["grow_bottom"]
+    if rarity >= 5:
+        # 实机最高星卡片约占全图九成高度，保留上下各5%的呼吸空间。
+        top, bottom = DESIGN_H * .05, DESIGN_H * .95
     return CardGeometry(
         quad=((tlx - dx, top), (tlx - dx + target_width, top),
               (blx - dx + target_width, bottom), (blx - dx, bottom)),
@@ -477,47 +486,91 @@ class Renderer:
         back = files.get(f"lihui-guaidao-{back_name}.png")
         return (front, back) if front and back else None
 
-    def _character_art(self, pair, geometry, scale):
-        """角色前景与专属面具分别定位；不附加属性底纹。"""
+    def _source_art(self, path):
+        if not hasattr(self, "_source_cache"):
+            self._source_cache = {}
+        key = str(path)
+        if key not in self._source_cache:
+            if len(self._source_cache) >= 12:
+                self._source_cache.pop(next(iter(self._source_cache)))
+            with Image.open(path) as source:
+                self._source_cache[key] = source.convert("RGBA")
+        return self._source_cache[key]
+
+    def _placement(self, item):
+        if not hasattr(self, "_placements"):
+            path = self.assets / "character_layers" / "placement.json"
+            self._placements = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        return self._placements.get(item.id)
+
+    @staticmethod
+    def _visible_resize(art, factor, x, y, geometry):
+        """只重采样卡槽可见范围，避免放大数倍的整张立绘占用时间与内存。"""
+        width, height = max(1, round(art.width*factor)), max(1, round(art.height*factor))
+        x, y = round(x), round(y)
+        left = max(x, int(min(p[0] for p in geometry.quad))-4)
+        top = max(y, int(geometry.top)-4)
+        right = min(x+width, int(max(p[0] for p in geometry.quad))+5)
+        bottom = min(y+height, int(max(p[1] for p in geometry.quad))+5)
+        if right <= left or bottom <= top:
+            return Image.new("RGBA", (1,1)), (left,top)
+        box = ((left-x)*art.width/width, (top-y)*art.height/height,
+               (right-x)*art.width/width, (bottom-y)*art.height/height)
+        return art.resize((right-left,bottom-top), Image.Resampling.LANCZOS, box=box), (left,top)
+
+    def _anchored_foreground(self, art, placement, geometry):
+        bounds = art.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
+        if bounds:
+            art = art.crop(bounds)
+        fx, fy = placement["face"]
+        factor = geometry.width * .95 / (art.width * placement["face_width"])
+        factor = min(factor, geometry.height * 3.7 / art.height)
+        tl, tr, br, bl = geometry.quad
+        target_y = .42
+        lane_x = (tl[0] + tr[0]) / 2 + (bl[0] - tl[0]) * target_y
+        x = lane_x - round(art.width*factor)*fx
+        y = tl[1]+geometry.height*target_y-round(art.height*factor)*fy
+        return self._visible_resize(art, factor, x, y, geometry)
+
+    def _character_art(self, pair, geometry, scale, item=None):
+        """前景按逐角色脸部锚点定位，避免举手、武器与披风挤走人物。"""
         canvas, offset = self._card_canvas(geometry, scale)
         tl, tr, br, bl = geometry.quad
-        height = geometry.height
-        twins = "jandc" in pair[0].stem.casefold()
-        for path, fraction, top in ((pair[1], 1.15, -.04), (pair[0], 1.55, .08)):
-            if path is None:
-                continue
-            if twins and path == pair[0]:
-                self._twins_foreground(canvas, offset, path, geometry)
-                continue
-            prepared = path.parent / "prepared" / path.name
-            if prepared.is_file():
-                path = prepared
-            with Image.open(path) as source:
-                art = source.convert("RGBA")
-            # 忽略极低 alpha 的导出边缘残色，避免空白区影响缩放与主体定位。
-            bounds = art.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
+        placement = self._placement(item) if item else None
+        placement = placement or {"face": [.5,.13], "face_width": .20}
+        if pair[1] is not None:
+            back = self._source_art(pair[1])
+            bounds = back.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
             if bounds:
-                art = art.crop(bounds)
-            factor = height*fraction / art.height
-            art = art.resize((max(1, round(art.width*factor)), max(1, round(art.height*factor))),
-                             Image.Resampling.LANCZOS)
-            y = tl[1] + height*top
-            focus_fraction = .16 if path.name == pair[0].name else .3
-            focus = art.getchannel("A").crop((0, 0, art.width, max(1, round(art.height*focus_fraction))))
-            box = focus.getbbox()
-            focus_x = (box[0]+box[2])/2 if box else art.width/2
-            ratio = (y+art.height*focus_fraction*.5-tl[1])/height
-            # 宽披风/长柄武器的显式脸部锚点，避免用武器外沿居中。
-            anchors = {"lihui-guaidao-sepia.png": (.44,.105),
-                       "lihui-guaidao-tembin.png": (.45,.125),
-                       "lihui-guaidao-matoi.png": (.50,.32)}
-            if path.name == pair[0].name and path.name in anchors:
-                fx,fy = anchors[path.name]
-                focus_x = art.width*fx
-                y = tl[1]+height*.25-art.height*fy
-                ratio = .25
-            lane_x = (tl[0]+tr[0])/2+(bl[0]-tl[0])*ratio
-            canvas.alpha_composite(art, (round(lane_x-focus_x-offset[0]), round(y-offset[1])))
+                back = back.crop(bounds)
+            bp = placement.get("background", {"face": [.5,.2], "face_width": .22})
+            bx, by = bp["face"]
+            factor = min(geometry.width * 1.22 / (back.width * bp["face_width"]), geometry.height * 4.5 / back.height)
+            target_y = bp.get("target_y", .13)
+            lane_x = (tl[0]+tr[0])/2+(bl[0]-tl[0])*target_y
+            x = lane_x-round(back.width*factor)*bx
+            y = tl[1]+geometry.height*target_y-round(back.height*factor)*by
+            back, (x,y) = self._visible_resize(back,factor,x,y,geometry)
+            back = ImageEnhance.Brightness(back).enhance(1.16)
+            canvas.alpha_composite(back,(x-offset[0],y-offset[1]))
+        if "jandc" in pair[0].stem.casefold():
+            self._twins_foreground(canvas, offset, pair[0], geometry)
+            return canvas, offset
+        art = self._source_art(pair[0])
+        art, (x,y) = self._anchored_foreground(art, placement, geometry)
+        front = Image.new("RGBA",canvas.size)
+        front.alpha_composite(art,(x-offset[0],y-offset[1]))
+        # 上方保留专属人格面具的面部；前景从头发上沿渐入，避免举手武器盖住后景。
+        alpha = front.getchannel("A")
+        gate = Image.new("L",canvas.size,255)
+        draw = ImageDraw.Draw(gate)
+        cutoff = round(tl[1]+geometry.height*.255-offset[1])
+        draw.rectangle((0,0,canvas.width,max(0,cutoff)),fill=0)
+        fade = max(1,round(geometry.height*.025))
+        for row in range(fade):
+            draw.line((0,cutoff+row,canvas.width,cutoff+row),fill=round(255*row/fade))
+        front.putalpha(ImageChops.multiply(alpha,gate))
+        canvas.alpha_composite(front)
         return canvas, offset
 
     @staticmethod
@@ -532,9 +585,9 @@ class Renderer:
         ImageDraw.Draw(left).polygon([(0,0),*seam,(0,h)],fill=255)
         tl,tr,br,bl = geometry.quad
         # 两张脸分别占上、下半区，尺度按脸宽约占槽宽的 68% 确定。
-        factor = geometry.width*.68/(w*.17)
-        for mask, face, target_y in ((left,(.32,.15),.30),
-                                    (ImageOps.invert(left),(.63,.385),.61)):
+        factor = geometry.width*.92/(w*.17)
+        for mask, face, target_y in ((left,(.32,.15),.40),
+                                    (ImageOps.invert(left),(.63,.385),.68)):
             figure = art.copy()
             figure.putalpha(ImageChops.multiply(art.getchannel("A"),mask))
             figure = figure.resize((max(1,round(w*factor)),max(1,round(h*factor))),
@@ -553,8 +606,11 @@ class Renderer:
         """
         pair = self._character_pair(result.item)
         if pair:
-            return self._character_art(pair, geometry, scale)
+            return self._character_art(pair, geometry, scale, result.item)
         art = self.portrait(result.item)
+        placement = self._placement(result.item) if result.item.kind in ("char", "character") else None
+        if art is not None and placement:
+            return self._anchored_foreground(art, placement, geometry)
         width, height = geometry.width, geometry.height
         (tlx, tly), (trx, _), (brx, bry), (blx, _) = geometry.quad
         cx = (tlx + trx + brx + blx) / 4
@@ -568,21 +624,32 @@ class Renderer:
             layer.alpha_composite(silhouette)
             return layer, (int(cx - silhouette.width / 2), int(bry - silhouette.height * 0.96))
 
-        bounds = art.getchannel("A").getbbox()
+        bounds = art.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
         if bounds:
             art = art.crop(bounds)
         if result.item.kind == "persona":
-            old_factor = height*.91/art.height
-            if art.width/art.height > .70:
-                old_factor = min(old_factor,width*2.8/art.width)
-            # 用户验图后放宽：主体要有存在感，不再为塞下外接矩形而过度缩小。
-            # 宽幅面具仍限宽，允许边缘翅膀/尾巴有少量裁切。
-            factor = min(old_factor*.90,width*1.95/art.width,height*.80/art.height)
-            resized = art.resize((max(1,round(art.width*factor)),max(1,round(art.height*factor))),
-                                 Image.Resampling.LANCZOS)
-            center_y = tly+height*.55
-            lane_x = (tlx+trx)/2+(blx-tlx)*.55
-            return resized,(round(lane_x-resized.width/2),round(center_y-resized.height/2))
+            if not hasattr(self, "_persona_placements"):
+                path = self.assets / "persona_placement.json"
+                self._persona_placements = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+            placement = self._persona_placements.get(result.item.id, {})
+            focus = placement.get("focus", [.5,.3])
+            if placement.get("flip_x"):
+                art = ImageOps.mirror(art)
+            # 小幅宽度让步保留主体大小；翅膀和尾巴可以裁切，脸部必须留在槽内。
+            factor = min(height * placement.get("max_height", 1.16) / art.height, width * placement.get("max_width", 2.3) / art.width)
+            resized = art.resize((max(1,round(art.width*factor)),max(1,round(art.height*factor))), Image.Resampling.LANCZOS)
+            subject_y = tly + height * placement.get("target_y", .29)
+            y = subject_y - resized.height * focus[1]
+            ratio = (subject_y-tly)/height
+            lane_x = (tlx+trx)/2+(blx-tlx)*ratio
+            x = lane_x-resized.width*focus[0]
+            # 细黑衬线提升同色属性底纹上的轮廓，不给低星添加辉光。
+            alpha = resized.getchannel("A")
+            outline = alpha.filter(ImageFilter.MaxFilter(3))
+            under = Image.new("RGBA",resized.size,(5,7,12,0))
+            under.putalpha(outline.point(lambda a: round(a*.65)))
+            under.alpha_composite(resized)
+            return under,(round(x),round(y))
         if result.item.kind in ("character", "char", "persona"):
             # 角色：按身高铺满整张卡，再上浮 6%，让头探出卡顶（参考图里头顶都越界）。
             factor = height * 1.55 / art.height
@@ -918,22 +985,33 @@ class Renderer:
         if rarity < 4:
             return
         points = [(x * scale, y * scale) for x, y in geometry.quad]
-        tint = (193, 115, 255) if rarity >= 5 else (255, 206, 76)
+        lighting = CARD_LIGHTING[5 if rarity >= 5 else 4]
+        tint = lighting["tint"]
         halo = Image.new("RGBA", canvas.size)
         hd = ImageDraw.Draw(halo)
         inner_points = _inner_quad(points, 14 * scale)
         # 柔光集中在顶底，而非整圈灯管。确定性相位让相邻高星不重复。
         phase = self._effect_phase(item_id, slot)
-        for t, alpha, radius in ((.03, 155, 30), (.94, 195, 36)):
-            if rarity == 4:
-                alpha, radius = 100, 20
+        for t in (.03, .94):
+            alpha = lighting["halo_alpha"]
             a, b = inner_points[0], inner_points[3]
-            x = a[0]+(b[0]-a[0])*t + geometry.width*scale*(.35+.25*phase)
+            x = a[0]+(b[0]-a[0])*t + geometry.width*scale*.475
             y = a[1]+(b[1]-a[1])*t
             reach = (60 if rarity >= 5 else 35) * scale
             hd.polygon([(x-8*scale,y-reach),(x+10*scale,y-reach),
                         (x-6*scale,y+reach),(x-18*scale,y+reach)], fill=(*tint,alpha))
-        canvas.alpha_composite(halo.filter(ImageFilter.GaussianBlur(max(2, int(17 * scale)))))
+        radius = max(2, int(17 * scale))
+        bounds = halo.getbbox()
+        if bounds:
+            pad = radius*4
+            region = (max(0,bounds[0]-pad),max(0,bounds[1]-pad),
+                      min(canvas.width,bounds[2]+pad),min(canvas.height,bounds[3]+pad))
+            glow = halo.crop(region)
+            glow_size = glow.size
+            # 大半径柔光在半分辨率计算，细亮边和星芒仍以原分辨率绘制。
+            glow = glow.resize((max(1,glow.width//2),max(1,glow.height//2)),Image.Resampling.BILINEAR)
+            glow = glow.filter(ImageFilter.GaussianBlur(radius/2)).resize(glow_size,Image.Resampling.BILINEAR)
+            canvas.alpha_composite(glow,region[:2])
         edge = ImageDraw.Draw(canvas)
         # 光边位于黑色分隔线内侧；仍保留黑缝，不做整圈白色相框。
         for side, lo, hi in self._effect_segments(phase, rarity):
@@ -969,17 +1047,17 @@ class Renderer:
         for slot, (geo, result) in enumerate(zip(geometries, results)):
             if result.rarity < 4:
                 continue
-            color = (175, 66, 246) if result.rarity >= 5 else (255, 192, 61)
-            phase = self._effect_phase(result.item.id, slot)
-            reach = (115 if result.rarity >= 5 else 62) * scale * (.75 + .3*phase)
+            lighting = CARD_LIGHTING[5 if result.rarity >= 5 else 4]
+            color = lighting["tint"]
+            reach = lighting["reach"] * scale
             for end in (0, 1):
                 a, b = (geo.quad[0], geo.quad[1]) if end == 0 else (geo.quad[3], geo.quad[2])
                 cx, y = (a[0]+b[0])*.5*scale, a[1]*scale
                 sign = -1 if end == 0 else 1
                 dx = -sign * 22 * scale
-                half = geo.width * scale * (.26+.10*phase if result.rarity >= 5 else .16+.06*phase)
+                half = geo.width * scale * (.31 if result.rarity >= 5 else .19)
                 hd.polygon([(cx-half,y),(cx+half,y),(cx+dx+half*.4,y+sign*reach),
-                            (cx+dx-half*.4,y+sign*reach)], fill=(*color,140 if result.rarity>=5 else 85))
+                            (cx+dx-half*.4,y+sign*reach)], fill=(*color,lighting["haze_alpha"]))
                 for n in range(4 if result.rarity>=5 else 2):
                     x = cx+(n-1.5)*13*scale + (slot%3)*4*scale
                     rd.line([(x,y),(x+dx,y+sign*reach*(.55+.1*((slot+n)%4)))],
@@ -1038,15 +1116,14 @@ class Renderer:
                                    Image.Resampling.BICUBIC)
         clip = Image.new("L", canvas.size)
         ImageDraw.Draw(clip).polygon(_polygon(quad), fill=255)
-        with Image.open(path) as source:
-            source = source.convert("RGBA")
-            if kind in ("character", "char") and rarity >= 5:
-                # 用户指定的自选紫底为四角不平行的卡面，先按内容四角校正；
-                # 不把图外碎片与额外彩边拉进结果底版。
-                source = source.transform((360, 828), Image.Transform.QUAD,
-                                          (120, 27, 15, 647, 290, 685, 372, 35),
-                                          Image.Resampling.BICUBIC)
-            layer = warp(source)
+        source = self._source_art(path)
+        if kind in ("character", "char") and rarity >= 5:
+            if not hasattr(self, "_five_foundation_source"):
+                self._five_foundation_source = source.transform(
+                    (360, 828), Image.Transform.QUAD,
+                    (120, 27, 15, 647, 290, 685, 372, 35), Image.Resampling.BICUBIC)
+            source = self._five_foundation_source
+        layer = warp(source)
         layer.putalpha(ImageChops.multiply(layer.getchannel("A"), clip))
         if kind != "character_edge":
             canvas.alpha_composite(layer)
@@ -1071,6 +1148,12 @@ class Renderer:
         if not path.is_file() or rarity < 4:
             return
         tl, tr, br, bl = [(x*scale, y*scale) for x,y in geometry.quad]
+        x0 = max(0, int(min(tl[0],bl[0]))-8)
+        y0 = max(0, int(tl[1])-8)
+        x1 = min(canvas.width, int(max(tr[0],br[0]))+9)
+        y1 = min(canvas.height, int(bl[1])+9)
+        local_size = (max(1,x1-x0),max(1,y1-y0))
+        tl,tr,br,bl = [(x-x0,y-y0) for x,y in (tl,tr,br,bl)]
         # 与底纹使用完全一致的内轮廓，右、下留出黑衬底。
         border = max(5, round(7*scale))
         tr = (tr[0]-border, tr[1])
@@ -1078,20 +1161,19 @@ class Renderer:
         bl = (bl[0]+(tl[0]-bl[0])*border/max(1, bl[1]-tl[1]), bl[1]-border)
         width, height = tr[0]-tl[0], bl[1]-tl[1]
         shear = (bl[0]-tl[0])/height
-        with Image.open(path) as source:
-            image = source.convert("RGBA")
+        image = self._source_art(path)
         # 不能按 alpha 每行的宽度拟合：描边每行只有几个像素，并非整张卡宽。
         source_left = image.width-1
         source_shear = -source_left/image.height
         sx, sy = 184/width, image.height/height
         xy = -shear*sx+source_shear*sy
-        edge = image.transform(canvas.size, Image.Transform.AFFINE,
+        edge = image.transform(local_size, Image.Transform.AFFINE,
                                (sx,xy,source_left-tl[0]*sx-tl[1]*xy,0,sy,-tl[1]*sy),
                                Image.Resampling.BICUBIC)
-        clip = Image.new("L", canvas.size)
+        clip = Image.new("L", local_size)
         ImageDraw.Draw(clip).polygon(_polygon([tl,tr,br,bl]),fill=255)
         edge.putalpha(ImageChops.multiply(edge.getchannel("A"),clip))
-        canvas.alpha_composite(edge)
+        canvas.alpha_composite(edge,(x0,y0))
 
     def _foundation_card(self, geometry: CardGeometry, scale: float, slot: int, rarity: int, element: str = "",
                          kind: str = "persona"):
@@ -1195,8 +1277,8 @@ class Renderer:
     def _centered_result_slots(results: Sequence[PullResult]) -> list[PullResult]:
         """5★占正中央，4★占中央两侧，低星从外侧向内填充。"""
         count = len(results)
-        five_slots = [4, 5, 3, 6, 2, 7, 1, 8, 0, 9]
-        four_slots = [3, 6, 2, 7, 1, 8, 0, 9, 4, 5]
+        five_slots = [5, 4, 6, 3, 7, 2, 8, 1, 9, 0]
+        four_slots = [4, 6, 3, 7, 2, 8, 1, 9, 0, 5]
         low_slots = [0, 9, 1, 8, 2, 7, 3, 6, 4, 5]
         preferences = {5: five_slots, 4: four_slots, 3: low_slots, 2: low_slots}
         slots: list[PullResult | None] = [None] * count
@@ -1287,6 +1369,71 @@ class Renderer:
         draw.text((x + 80 * scale, y + 66 * scale), subtitle, font=self.font(int(24 * scale)),
                   fill=(255, 206, 120, 255), anchor="lm")
 
+    def _user_panel(self, canvas, user_name, footer, avatar):
+        """斜切身份签与契约计数：沿用背景的黑、白、电蓝视觉。"""
+        if not user_name and not footer:
+            return
+        import re
+        scale = canvas.width / DESIGN_W
+        if canvas.width >= 1500:
+            scale *= .60  # 宽屏左下留白内显示，避开90%高度的中央五星。
+        layer = Image.new("RGBA", (DESIGN_W, 1080))
+        draw = ImageDraw.Draw(layer)
+        # 底部留白内独立排版；短切口与背景斜线呼应。
+        draw.polygon([(48,978),(564,955),(541,1045),(26,1060)],fill=(0,0,0,245))
+        draw.polygon([(44,966),(554,944),(535,1031),(27,1048)],fill=(244,245,248,255))
+        draw.polygon([(52,974),(131,970),(115,1035),(35,1040)],fill=(0,38,196,255))
+        face = None
+        if avatar:
+            try:
+                with Image.open(io.BytesIO(avatar)) as source:
+                    face = ImageOps.fit(source.convert("RGBA"), (66,66), Image.Resampling.LANCZOS)
+            except Exception:
+                pass
+        if face is None:
+            face = Image.new("RGBA",(66,66),(16,22,45,255))
+            ImageDraw.Draw(face).text((33,33),(user_name or "玩")[0],font=self.font(36),anchor="mm",fill="white")
+        mask = Image.new("L",(66,66))
+        ImageDraw.Draw(mask).polygon([(9,0),(65,0),(56,65),(0,65)],fill=255)
+        layer.paste(face,(53,973),mask)
+        name = " ".join((user_name or "玩家").split())
+        font = self.font(32)
+        while len(name)>1 and draw.textlength(name,font=font)>355:
+            name = name[:-2]+"…"
+        remaining = re.search(r"今日剩余\s*(\d+)\s*抽", footer)
+        if remaining:
+            draw.text((147,968),f"今日可抽 {remaining.group(1)} 抽",font=self.font(20),fill=(0,38,196))
+        else:
+            draw.text((147,970),"PHANTOM  /  CONTRACT",font=self.font(13,latin=True),fill=(0,38,196))
+        draw.text((143,990),name,font=font,fill=(9,11,18))
+        progress = re.search(r"(\d+)\s*/\s*(\d+)",footer)
+        total = re.search(r"累计\s*(\d+)\s*抽",footer)
+        if progress:
+            current, hard = map(int,progress.groups())
+            draw.polygon([(610,965),(1000,965),(983,1040),(592,1040)],fill=(0,0,0,235))
+            draw.polygon([(614,960),(627,960),(610,1036),(597,1036)],fill=(0,57,240,255))
+            draw.text((642,970),"保底进度",font=self.font(19),fill=(190,198,216))
+            draw.text((800,960),str(current),font=self.font(56,latin=True),fill="white")
+            draw.text((888,988),f"/ {hard}",font=self.font(27,latin=True),fill=(175,186,215))
+            # 细分进度条只有当前保底填充，五星重置后归空。
+            draw.polygon([(639,1027),(953,1027),(950,1032),(638,1032)],fill=(52,57,75))
+            fill_width = round(311*min(1,current/max(1,hard)))
+            if fill_width:
+                draw.rectangle((640,1027,640+fill_width,1032),fill=(47,87,255))
+        if total:
+            draw.polygon([(1050,965),(1350,965),(1333,1040),(1032,1040)],fill=(0,0,0,225))
+            draw.text((1070,975),"累计契约",font=self.font(19),fill=(190,198,216))
+            # 避免大累计值挤出面板。
+            number=total.group(1); font=self.font(46,latin=True)
+            while draw.textlength(number,font=font)>100 and font.size>18:
+                font=self.font(font.size-1,latin=True)
+            draw.polygon([(1053,1030),(1068,1030),(1065,1035),(1050,1035)],fill=(0,57,240))
+            draw.text((1190,963),number,font=font,fill="white")
+            draw.text((1304,1014),"抽",font=self.font(16),fill=(190,198,216))
+        if canvas.size != layer.size:
+            layer = layer.resize((round(DESIGN_W * scale), round(1080 * scale)),Image.Resampling.LANCZOS)
+        canvas.alpha_composite(layer, (0, canvas.height - layer.height))
+
     # ------------------------------------------------------------------
     # 对外接口
     # ------------------------------------------------------------------
@@ -1299,10 +1446,11 @@ class Renderer:
         show_new: bool = True,
         caption: tuple[str, str] | None = None,
         size: tuple[int, int] = (DESIGN_W, DESIGN_H),
+        avatar: bytes | None = None,
     ) -> Image.Image:
         if size != (DESIGN_W, DESIGN_H):
             # 先在设计坐标完成构图，再等比缩放/留边；不改变立绘定位算法。
-            full = self.render_ten(results, banner, user_name, footer, show_new, caption)
+            full = self.render_ten(results, banner, user_name, footer, show_new, caption, avatar=avatar)
             return ImageOps.pad(full, size, Image.Resampling.LANCZOS, color=(5,6,9))
         canvas = self._background(size)
         scale = self._scale(size)
@@ -1368,6 +1516,7 @@ class Renderer:
             if result.item.kind in ("character", "char"):
                 self._character_frame(canvas, geo, result.rarity, scale)
         self._blue_cutlines(canvas)
+        self._user_panel(canvas, user_name, footer, avatar)
 
         return canvas.convert("RGB")
 
@@ -1395,16 +1544,17 @@ class Renderer:
         user_name: str = "",
         footer: str = "",
         size: tuple[int, int] = (1200, 905),
+        avatar: bytes | None = None,
     ) -> Image.Image:
         canvas = self._background(size)
-        scale = self._scale(size) * 1.35
-        geometry = card_geometry(0, result.rarity, window=1)
-        card_cx = (geometry.quad[0][0] + geometry.quad[2][0]) / 2
-        card_cy = (geometry.top + geometry.quad[2][1]) / 2
+        scale = 1.0
+        # 单抽使用更宽的主视觉卡槽；几何直接采用输出坐标。
+        width, height = size[0] * .27, size[1] * (.90 if result.rarity >= 5 else .78)
+        top, slant = size[1] * (.05 if result.rarity >= 5 else .08), -size[0] * .09
+        left = size[0] / 2 - width / 2 - slant / 2
         shifted = CardGeometry(
-            quad=tuple((px - card_cx + size[0] / 2, py - card_cy + size[1] / 2) for px, py in geometry.quad),
-            width=geometry.width,
-            height=geometry.height,
+            quad=((left,top),(left+width,top),(left+width+slant,top+height),(left+slant,top+height)),
+            width=width, height=height,
         )
         self._high_star_backlight(canvas, [shifted], [result], 1)
         # 单抽同样走「色带 + 独立立绘前层」，保证立绘顶到卡顶而不是被裁进色带。
@@ -1413,7 +1563,11 @@ class Renderer:
         layer = self.art_layer(result, shifted, scale)
         if layer is not None:
             art, (ax, ay) = layer
-            canvas.alpha_composite(art, (int(ax), int(ay)))
+            content = Image.new("RGBA",canvas.size)
+            content.alpha_composite(art,(int(ax),int(ay)))
+            mask = Image.new("L",canvas.size)
+            ImageDraw.Draw(mask).polygon(shifted.quad,fill=255)
+            canvas.alpha_composite(Image.composite(content,Image.new("RGBA",canvas.size),mask))
         if result.rarity in (2, 3):
             ImageDraw.Draw(canvas).polygon(self._low_star_foot(shifted, 1), fill=(2, 2, 4, 255))
         if result.rarity >= 4:
@@ -1427,6 +1581,7 @@ class Renderer:
         if result.item.kind in ("character", "char"):
             self._character_frame(canvas, shifted, result.rarity)
         self._blue_cutlines(canvas)
+        self._user_panel(canvas, user_name, footer, avatar)
         return canvas.convert("RGB")
 
 

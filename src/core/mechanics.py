@@ -94,7 +94,7 @@ class GachaMechanics:
         # 没有 UP，或没有可歪的对象：只可能出候选池里的东西，视为不重置小保底。
         if not ups or not others:
             item = self.rng.choice(ups or candidates)
-            return item, rarity in (4, 5) and bool(ups), False
+            return item, rarity in (4, 5) and bool(ups), guaranteed if not ups else False
 
         rate = banner.up_rate.get(rarity, 0.5)
         choose_up = guaranteed or self.rng.random() < rate

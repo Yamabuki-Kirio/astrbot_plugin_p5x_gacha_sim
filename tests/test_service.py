@@ -22,7 +22,7 @@ from src.services.gacha_service import GachaService  # noqa: E402
 def env(tmp_path):
     registry = Registry.load()
     store = Store(tmp_path / "test.sqlite3")
-    service = GachaService(registry, store)
+    service = GachaService(registry, store, daily_pulls=1000)
     yield registry, store, service
     store.close()
 
@@ -37,7 +37,7 @@ def test_ten_pull_persists_state_and_history(env):
     state = store.load_state("qq", "u1", banner.pity_group)
     assert state.pulls == 10
     assert state.total_of(banner.id) == 10
-    assert store.count_history("qq", "u1") == 10
+    assert store.count_history("qq", "u1") == sum(r.rarity in (4,5) and r.item.id.startswith(("char:","weapon:")) for r in outcome.results)
 
 
 def test_pity_groups_are_independent(env):
@@ -55,6 +55,11 @@ def test_pity_groups_are_independent(env):
 def test_history_pagination(env):
     registry, store, service = env
     banner = registry.banner("char_limited")
+    from src.core.mechanics import GachaMechanics
+    class AlwaysFive:
+        def random(self): return 0
+        def choice(self, values): return values[0]
+    service.mechanics = GachaMechanics(AlwaysFive())
     for _ in range(3):
         service.draw("qq", "u1", banner, 10)
 

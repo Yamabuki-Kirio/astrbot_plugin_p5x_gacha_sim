@@ -979,82 +979,31 @@ class Renderer:
                     (0, .72-phase*.05, .97-phase*.02))
         return segments + ((1, .32+phase*.08, .46+phase*.08),) if rarity >= 5 else segments
 
-    def _five_flare(self, canvas: Image.Image, geometry: CardGeometry, scale: float, rarity: int = 5,
-                    item_id: str = "", slot: int = 0) -> None:
-        """沿色带边缘的稀有度光效，不把星芒排成底部徽章。"""
+    def _five_flare(self, canvas, geometry, scale, rarity=5, item_id="", slot=0):
+        """只在卡片外轮廓产生柔和泛光，卡面内部 alpha 严格为零。"""
         if rarity < 4:
             return
-        points = [(x * scale, y * scale) for x, y in geometry.quad]
-        lighting = CARD_LIGHTING[5 if rarity >= 5 else 4]
-        tint = lighting["tint"]
-        halo = Image.new("RGBA", canvas.size)
-        hd = ImageDraw.Draw(halo)
-        inner_points = _inner_quad(points, 14 * scale)
-        # 柔光集中在顶底，而非整圈灯管。确定性相位让相邻高星不重复。
-        phase = self._effect_phase(item_id, slot)
-        # 亮边先有窄而饱和的有色光晕，再叠白色光芯；避免模糊后只剩几乎不可见的雾。
-        for side, lo, hi in self._effect_segments(phase, rarity):
-            a, b = points[side], points[3-side]
-            inset = (12 if side == 0 else -16) * scale
-            segment = [(a[0]+(b[0]-a[0])*t+inset, a[1]+(b[1]-a[1])*t) for t in (lo, hi)]
-            hd.line(segment, fill=(*tint, lighting["halo_alpha"]),
-                    width=max(7, round((19 if rarity >= 5 else 14)*scale)))
-        for t in (.025, .965):
-            alpha = lighting["halo_alpha"]
-            a, b = inner_points[0], inner_points[3]
-            x = a[0]+(b[0]-a[0])*t + geometry.width*scale*.475
-            y = a[1]+(b[1]-a[1])*t
-            reach = (78 if rarity >= 5 else 54) * scale
-            hd.ellipse((x-geometry.width*scale*.40, y-reach*.22,
-                        x+geometry.width*scale*.40, y+reach*.22), fill=(*tint,round(alpha*.72)))
-        radius = max(2, int(10 * scale))
-        bounds = halo.getbbox()
-        if bounds:
-            pad = radius*4
-            region = (max(0,bounds[0]-pad),max(0,bounds[1]-pad),
-                      min(canvas.width,bounds[2]+pad),min(canvas.height,bounds[3]+pad))
-            glow = halo.crop(region)
-            glow_size = glow.size
-            # 大半径柔光在半分辨率计算，细亮边和星芒仍以原分辨率绘制。
-            glow = glow.resize((max(1,glow.width//2),max(1,glow.height//2)),Image.Resampling.BILINEAR)
-            glow = glow.filter(ImageFilter.GaussianBlur(radius/2)).resize(glow_size,Image.Resampling.BILINEAR)
-            canvas.alpha_composite(glow,region[:2])
-        edge = ImageDraw.Draw(canvas)
-        # 光边位于黑色分隔线内侧；仍保留黑缝，不做整圈白色相框。
-        for side, lo, hi in self._effect_segments(phase, rarity):
-            a, b = points[side], points[3-side]
-            inset = 16 * scale if side == 0 else -16 * scale
-            segment = [(a[0]+(b[0]-a[0])*t+inset, a[1]+(b[1]-a[1])*t) for t in (lo, hi)]
-            edge.line(segment, fill=(*tint, 240), width=max(2, int(4 * scale)))
-            core = (255, 248, 218, 250) if rarity == 4 else (250, 238, 255, 255)
-            edge.line(segment, fill=core, width=max(2, round(2.5 * scale)))
-            # 碎光只围绕局部亮边，不沿全卡均匀撒点。
-            for n in range(2 if rarity >= 5 else 1):
-                t = lo+(hi-lo)*(.2+.5*n)
-                x = a[0]+(b[0]-a[0])*t+inset+(n*2-1)*5*scale
-                y = a[1]+(b[1]-a[1])*t
-                r = (2+n)*scale
-                edge.polygon(((x-r,y-r),(x+r,y-r*.5),(x,y+r*2)), fill=(*tint,210))
-        for side, t, strength in ((0, .83-phase*.13, 1.0), (1, .19+phase*.16, .65)):
-            if rarity == 4 and side == 1:
-                continue
-            a, b = points[side], points[3-side]
-            x, y = a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t
-            x += (18 if side == 0 else -18) * scale
-            r = (32 if rarity >= 5 else 21) * scale * strength
-            edge.polygon([(x,y-r),(x+r*.12,y-r*.12),(x+r*.70,y),
-                          (x+r*.12,y+r*.12),(x,y+r),(x-r*.12,y+r*.12),
-                          (x-r*.70,y),(x-r*.12,y-r*.12)], fill=(255,252,245,245))
-
-        for top in (True, False):
-            a,b = (points[0],points[1]) if top else (points[3],points[2])
-            y = a[1] + (5 if top else -12)*scale
-            offset = (points[3][0]-points[0][0]) * (y-a[1]) / max(1, geometry.height*scale)
-            start = (a[0]+offset+geometry.width*scale*.13, y)
-            end = (a[0]+offset+geometry.width*scale*.79, y)
-            edge.line((start,end), fill=(*tint,230), width=max(3,round(5*scale)))
-            edge.line((start,end), fill=(255,248,224,245) if rarity == 4 else (251,239,255,250),
-                      width=max(1,round(2*scale)))
+        points=[(x*scale,y*scale) for x,y in geometry.quad]
+        color=CARD_LIGHTING[5 if rarity>=5 else 4]["tint"]
+        padding=round(95*scale)
+        x0=max(0,int(min(x for x,y in points))-padding)
+        y0=max(0,int(min(y for x,y in points))-padding)
+        x1=min(canvas.width,int(max(x for x,y in points))+padding+1)
+        y1=min(canvas.height,int(max(y for x,y in points))+padding+1)
+        if x1<=x0 or y1<=y0:
+            return
+        local=[(x-x0,y-y0) for x,y in points]
+        source=Image.new("RGBA",(x1-x0,y1-y0))
+        draw=ImageDraw.Draw(source)
+        draw.line(local+[local[0]],fill=(*color,190 if rarity>=5 else 155),
+                  width=max(5,round((17 if rarity>=5 else 13)*scale)),joint="curve")
+        inside=Image.new("L",source.size)
+        ImageDraw.Draw(inside).polygon(local,fill=255)
+        outside=ImageChops.invert(inside)
+        for radius in (25,7):
+            glow=source.filter(ImageFilter.GaussianBlur(radius*scale))
+            glow.putalpha(ImageChops.multiply(glow.getchannel("A"),outside))
+            canvas.alpha_composite(glow,(x0,y0))
 
     def _high_star_backlight(self, canvas, geometries, results, scale):
         """卡外顶底光束先画在背景上，所有底版及黑衬底均遮挡它。"""
@@ -1064,6 +1013,7 @@ class Renderer:
         for slot, (geo, result) in enumerate(zip(geometries, results)):
             if result.rarity < 4:
                 continue
+            self._five_flare(canvas, geo, scale, result.rarity, result.item.id, slot)
             lighting = CARD_LIGHTING[5 if result.rarity >= 5 else 4]
             color = lighting["tint"]
             reach = lighting["reach"] * scale
@@ -1079,8 +1029,9 @@ class Renderer:
                     x = cx+(n-1.5)*13*scale + (slot%3)*4*scale
                     rd.line([(x,y),(x+dx,y+sign*reach*(.55+.1*((slot+n)%4)))],
                             fill=(*color,160 if result.rarity >= 5 else 125), width=max(1,round(2*scale)))
+        canvas.alpha_composite(haze.filter(ImageFilter.GaussianBlur(max(2,int(28*scale)))))
         canvas.alpha_composite(haze.filter(ImageFilter.GaussianBlur(max(2,int(12*scale)))))
-        canvas.alpha_composite(rays.filter(ImageFilter.GaussianBlur(max(.5,scale*.65))))
+        canvas.alpha_composite(rays.filter(ImageFilter.GaussianBlur(max(1.5,scale*2.5))))
 
     def _result_card(self, result: PullResult, geometry: CardGeometry, scale: float, art_layer: bool = True,
                      slot: int = 0, with_reward: bool = True, base_alpha: int = 255):
@@ -1518,17 +1469,7 @@ class Renderer:
             outline = points[1:3] if result.rarity < 4 else points[1:]
             ImageDraw.Draw(canvas).line(outline, fill=(2, 2, 4, 255), width=max(5, int(8 * scale)), joint="curve")
 
-        for i in range(count):
-            result = arranged[i]
-            if result.rarity >= 4:
-                effects = Image.new("RGBA", canvas.size)
-                effects_mask = Image.new("L", canvas.size)
-                points = [(px * scale, py * scale) for px, py in geometry[i].quad]
-                ImageDraw.Draw(effects_mask).polygon(points, fill=255)
-                self._five_flare(effects, geometry[i], scale, result.rarity, result.item.id, i)
-                canvas.alpha_composite(Image.composite(effects, Image.new("RGBA", canvas.size), effects_mask))
-
-        # 光效只能落在高星底版内部；低星与卡间黑线不接受光效。
+        # 光效已在卡片背后绘制，前层只保留原生品质框与黑分隔。
         self._draw_separators(canvas, geometry, scale, [result.rarity for result in arranged])
         for geo, result in zip(geometry, arranged):
             if result.item.kind in ("character", "char"):
@@ -1608,13 +1549,6 @@ class Renderer:
             canvas.alpha_composite(Image.composite(content,Image.new("RGBA",canvas.size),mask))
         if result.rarity in (2, 3):
             ImageDraw.Draw(canvas).polygon(self._low_star_foot(shifted, 1), fill=(2, 2, 4, 255))
-        if result.rarity >= 4:
-            # 单抽底版已经是输出像素坐标，光效不能再乘一次画布缩放。
-            effects = Image.new("RGBA", canvas.size)
-            self._five_flare(effects, shifted, 1, result.rarity, result.item.id)
-            mask = Image.new("L", canvas.size)
-            ImageDraw.Draw(mask).polygon(shifted.quad, fill=255)
-            canvas.alpha_composite(Image.composite(effects, Image.new("RGBA", canvas.size), mask))
         self._draw_separators(canvas, [shifted], 1, [result.rarity])
         if result.item.kind in ("character", "char"):
             self._character_frame(canvas, shifted, result.rarity)

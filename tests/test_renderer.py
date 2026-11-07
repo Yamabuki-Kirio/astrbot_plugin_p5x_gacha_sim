@@ -383,14 +383,37 @@ def test_mechanics_outputs_render(registry, renderer):
     assert renderer.render_ten(results, banner).size == (DESIGN_W, DESIGN_H)
 
 
-def test_gold_and_purple_effects_have_visible_cores_and_edge_glow(renderer):
+def test_gold_and_purple_effects_have_soft_continuous_bloom(renderer):
     from PIL import Image,ImageStat
     energies=[]
     geometry=foundation_geometry(4,5)
     for rarity in (4,5):
         effect=Image.new('RGBA',(DESIGN_W,DESIGN_H))
         renderer._five_flare(effect,geometry,1,rarity,'char:demo',4)
-        opaque_white=sum(1 for r,g,b,a in effect.getdata() if min(r,g,b)>210 and a>220)
-        assert opaque_white>100
-        energies.append(ImageStat.Stat(effect.getchannel('A')).sum[0])
+        alpha=effect.getchannel('A')
+        hist=alpha.histogram()
+        assert sum(hist[1:180])>1500
+        # 泛光来自分级透明度，不使用白色星形亮芯。
+        assert sum(1 for r,g,b,a in effect.getdata() if min(r,g,b)>210 and a>220)==0
+        energies.append(ImageStat.Stat(alpha).sum[0])
     assert energies[1]>energies[0]
+
+
+def test_external_glow_never_overlays_card_faces(registry,renderer,monkeypatch):
+    results=_mixed(registry)
+    geometries=[]
+    original=renderer._high_star_backlight
+    def capture(canvas,geos,arranged,scale):
+        geometries.extend(geos)
+        original(canvas,geos,arranged,scale)
+    monkeypatch.setattr(renderer,'_high_star_backlight',capture)
+    lit=renderer.render_ten(results)
+    monkeypatch.setattr(renderer,'_high_star_backlight',lambda *args:None)
+    plain=renderer.render_ten(results)
+    for geo in geometries:
+        for t in (.15,.3,.45,.6,.8):
+            left=geo.quad[0][0]*(1-t)+geo.quad[3][0]*t
+            y=int(geo.top+geo.height*t)
+            for f in (.2,.4,.6,.8):
+                x=int(left+geo.width*f)
+                assert lit.getpixel((x,y))==plain.getpixel((x,y))

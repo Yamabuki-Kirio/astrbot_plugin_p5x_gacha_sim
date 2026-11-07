@@ -64,6 +64,15 @@ v0.3.4：四星补强金色边缘柔光、亮芯与星芒；五星增强紫色�
 
 </details>
 
+<details>
+<summary>查看当前柔和泛光效果（v0.3.5，点击展开）</summary>
+
+四星为暖金泛光，五星为紫色泛光。泛光全部位于卡面外侧与背后，向外扩散，不覆盖人物、人格面具或卡面内部；不叠加星形或碎钻图标。
+
+![四五星柔和泛光效果](docs/images/lighting-bloom.jpg)
+
+</details>
+
 ## 快速开始
 
 安装并重载插件后，依次发送：
@@ -344,7 +353,7 @@ p5x 保底
 
 ## 维护与开发
 
-- [更新记录：v0.3.4](UPDATE-v0.3.4.md) · [v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
+- [更新记录：v0.3.5](UPDATE-v0.3.5.md) · [v0.3.4](UPDATE-v0.3.4.md) · [v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
 - [素材说明](assets/README.md) · [图层说明](assets/character_layers/README.md) · [数据与素材准备清单](docs/准备清单.md)
 - 卡池配置：`data/banners.json`；角色／武器条目：`data/items/`。
 - 角色定位：`assets/character_layers/placement.json`；低星人格面具定位：`assets/persona_placement.json`。

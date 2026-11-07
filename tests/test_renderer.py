@@ -123,7 +123,7 @@ def test_effect_limits_and_stable_identity(renderer):
     for rarity, count in ((2,0),(3,0),(4,2),(5,3)):
         segments = renderer._effect_segments(phase, rarity)
         assert len(segments) == count
-        assert all(0 <= lo < hi <= 1 and hi-lo <= .08 for _,lo,hi in segments)
+        assert all(0 <= lo < hi <= 1 and hi-lo <= .28 for _,lo,hi in segments)
 
 
 def test_deterministic_output_and_scaled_framing(registry, renderer):
@@ -381,3 +381,16 @@ def test_mechanics_outputs_render(registry, renderer):
     mech = GachaMechanics(__import__("random").Random(7))
     results, _state = mech.pull_many(banner, PityState(pity5=70), 10)
     assert renderer.render_ten(results, banner).size == (DESIGN_W, DESIGN_H)
+
+
+def test_gold_and_purple_effects_have_visible_cores_and_edge_glow(renderer):
+    from PIL import Image,ImageStat
+    energies=[]
+    geometry=foundation_geometry(4,5)
+    for rarity in (4,5):
+        effect=Image.new('RGBA',(DESIGN_W,DESIGN_H))
+        renderer._five_flare(effect,geometry,1,rarity,'char:demo',4)
+        opaque_white=sum(1 for r,g,b,a in effect.getdata() if min(r,g,b)>210 and a>220)
+        assert opaque_white>100
+        energies.append(ImageStat.Stat(effect.getchannel('A')).sum[0])
+    assert energies[1]>energies[0]

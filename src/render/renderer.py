@@ -30,8 +30,8 @@ DESIGN_W, DESIGN_H = 1920, 873
 
 # 卡内边缘光与卡外背光共用光源；角色身份只改变碎光位置，不改变亮度和光束尺寸。
 CARD_LIGHTING = {
-    4: {"tint": (255, 206, 76), "halo_alpha": 100, "reach": 62, "haze_alpha": 85},
-    5: {"tint": (193, 115, 255), "halo_alpha": 175, "reach": 115, "haze_alpha": 140},
+    4: {"tint": (255, 205, 66), "halo_alpha": 190, "reach": 88, "haze_alpha": 185},
+    5: {"tint": (190, 110, 255), "halo_alpha": 240, "reach": 135, "haze_alpha": 225},
 }
 
 # ---------------------------------------------------------------------------
@@ -975,9 +975,9 @@ class Renderer:
     def _effect_segments(phase: float, rarity: int):
         if rarity < 4:
             return ()
-        segments = ((0, .08+phase*.07, .12+phase*.07),
-                    (0, .85-phase*.09, .91-phase*.09))
-        return segments + ((1, .23+phase*.11, .27+phase*.11),) if rarity >= 5 else segments
+        segments = ((0, .035+phase*.04, .22+phase*.04),
+                    (0, .72-phase*.05, .97-phase*.02))
+        return segments + ((1, .32+phase*.08, .46+phase*.08),) if rarity >= 5 else segments
 
     def _five_flare(self, canvas: Image.Image, geometry: CardGeometry, scale: float, rarity: int = 5,
                     item_id: str = "", slot: int = 0) -> None:
@@ -992,15 +992,22 @@ class Renderer:
         inner_points = _inner_quad(points, 14 * scale)
         # 柔光集中在顶底，而非整圈灯管。确定性相位让相邻高星不重复。
         phase = self._effect_phase(item_id, slot)
-        for t in (.03, .94):
+        # 亮边先有窄而饱和的有色光晕，再叠白色光芯；避免模糊后只剩几乎不可见的雾。
+        for side, lo, hi in self._effect_segments(phase, rarity):
+            a, b = points[side], points[3-side]
+            inset = (12 if side == 0 else -16) * scale
+            segment = [(a[0]+(b[0]-a[0])*t+inset, a[1]+(b[1]-a[1])*t) for t in (lo, hi)]
+            hd.line(segment, fill=(*tint, lighting["halo_alpha"]),
+                    width=max(7, round((19 if rarity >= 5 else 14)*scale)))
+        for t in (.025, .965):
             alpha = lighting["halo_alpha"]
             a, b = inner_points[0], inner_points[3]
             x = a[0]+(b[0]-a[0])*t + geometry.width*scale*.475
             y = a[1]+(b[1]-a[1])*t
-            reach = (60 if rarity >= 5 else 35) * scale
-            hd.polygon([(x-8*scale,y-reach),(x+10*scale,y-reach),
-                        (x-6*scale,y+reach),(x-18*scale,y+reach)], fill=(*tint,alpha))
-        radius = max(2, int(17 * scale))
+            reach = (78 if rarity >= 5 else 54) * scale
+            hd.ellipse((x-geometry.width*scale*.40, y-reach*.22,
+                        x+geometry.width*scale*.40, y+reach*.22), fill=(*tint,round(alpha*.72)))
+        radius = max(2, int(10 * scale))
         bounds = halo.getbbox()
         if bounds:
             pad = radius*4
@@ -1019,8 +1026,8 @@ class Renderer:
             inset = 16 * scale if side == 0 else -16 * scale
             segment = [(a[0]+(b[0]-a[0])*t+inset, a[1]+(b[1]-a[1])*t) for t in (lo, hi)]
             edge.line(segment, fill=(*tint, 240), width=max(2, int(4 * scale)))
-            if rarity >= 5:
-                edge.line(segment, fill=(243, 236, 255, 245), width=max(1, int(2 * scale)))
+            core = (255, 248, 218, 250) if rarity == 4 else (250, 238, 255, 255)
+            edge.line(segment, fill=core, width=max(2, round(2.5 * scale)))
             # 碎光只围绕局部亮边，不沿全卡均匀撒点。
             for n in range(2 if rarity >= 5 else 1):
                 t = lo+(hi-lo)*(.2+.5*n)
@@ -1034,10 +1041,20 @@ class Renderer:
             a, b = points[side], points[3-side]
             x, y = a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t
             x += (18 if side == 0 else -18) * scale
-            r = (24 if rarity >= 5 else 11) * scale * strength
+            r = (32 if rarity >= 5 else 21) * scale * strength
             edge.polygon([(x,y-r),(x+r*.12,y-r*.12),(x+r*.70,y),
                           (x+r*.12,y+r*.12),(x,y+r),(x-r*.12,y+r*.12),
                           (x-r*.70,y),(x-r*.12,y-r*.12)], fill=(255,252,245,245))
+
+        for top in (True, False):
+            a,b = (points[0],points[1]) if top else (points[3],points[2])
+            y = a[1] + (5 if top else -12)*scale
+            offset = (points[3][0]-points[0][0]) * (y-a[1]) / max(1, geometry.height*scale)
+            start = (a[0]+offset+geometry.width*scale*.13, y)
+            end = (a[0]+offset+geometry.width*scale*.79, y)
+            edge.line((start,end), fill=(*tint,230), width=max(3,round(5*scale)))
+            edge.line((start,end), fill=(255,248,224,245) if rarity == 4 else (251,239,255,250),
+                      width=max(1,round(2*scale)))
 
     def _high_star_backlight(self, canvas, geometries, results, scale):
         """卡外顶底光束先画在背景上，所有底版及黑衬底均遮挡它。"""
@@ -1055,14 +1072,14 @@ class Renderer:
                 cx, y = (a[0]+b[0])*.5*scale, a[1]*scale
                 sign = -1 if end == 0 else 1
                 dx = -sign * 22 * scale
-                half = geo.width * scale * (.31 if result.rarity >= 5 else .19)
+                half = geo.width * scale * (.43 if result.rarity >= 5 else .32)
                 hd.polygon([(cx-half,y),(cx+half,y),(cx+dx+half*.4,y+sign*reach),
                             (cx+dx-half*.4,y+sign*reach)], fill=(*color,lighting["haze_alpha"]))
                 for n in range(4 if result.rarity>=5 else 2):
                     x = cx+(n-1.5)*13*scale + (slot%3)*4*scale
                     rd.line([(x,y),(x+dx,y+sign*reach*(.55+.1*((slot+n)%4)))],
-                            fill=(*color,100), width=max(1,int(scale)))
-        canvas.alpha_composite(haze.filter(ImageFilter.GaussianBlur(max(2,int(17*scale)))))
+                            fill=(*color,160 if result.rarity >= 5 else 125), width=max(1,round(2*scale)))
+        canvas.alpha_composite(haze.filter(ImageFilter.GaussianBlur(max(2,int(12*scale)))))
         canvas.alpha_composite(rays.filter(ImageFilter.GaussianBlur(max(.5,scale*.65))))
 
     def _result_card(self, result: PullResult, geometry: CardGeometry, scale: float, art_layer: bool = True,

@@ -53,6 +53,17 @@
 
 </details>
 
+<details>
+<summary>查看四五星光效优化对比（点击展开）</summary>
+
+v0.3.4：四星补强金色边缘柔光、亮芯与星芒；五星增强紫色辉光、局部亮边和顶底背光。光晕集中在卡边及顶底，保留角色面部与卡间黑色分隔，低星不附加光效。
+
+| 调整前 | 调整后 |
+| --- | --- |
+| ![四五星光效调整前](docs/images/lighting-before.jpg) | ![四五星光效调整后](docs/images/lighting-after.jpg) |
+
+</details>
+
 ## 快速开始
 
 安装并重载插件后，依次发送：
@@ -333,7 +344,7 @@ p5x 保底
 
 ## 维护与开发
 
-- [更新记录：v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
+- [更新记录：v0.3.4](UPDATE-v0.3.4.md) · [v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
 - [素材说明](assets/README.md) · [图层说明](assets/character_layers/README.md) · [数据与素材准备清单](docs/准备清单.md)
 - 卡池配置：`data/banners.json`；角色／武器条目：`data/items/`。
 - 角色定位：`assets/character_layers/placement.json`；低星人格面具定位：`assets/persona_placement.json`。

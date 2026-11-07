@@ -151,3 +151,20 @@ def test_star_ryuji_removed_from_all_pools_and_can_be_restored(registry,tmp_path
     restored=Registry.load(tmp_path/'data')
     assert len(restored.limited_characters())==38
     assert restored.resolve('星舞龙司').id=='target:'+excluded
+
+
+def test_hamuko_is_shiomi_not_montagne_in_target_weapon_and_art(registry):
+    import json
+    target=registry.resolve('哈姆子')
+    assert target.id=='target:char:KOTONE'
+    assert target.rate_up[5][0].name=='汐见琴音'
+    assert [i.id for i in registry.names.search('哈姆子')]==['char:KOTONE']
+    assert [i.id for i in registry.names.search('琴音·蒙塔涅')]==['char:MONT']
+    assert registry.resolve('琴音') is None
+    assert '歧义' in registry.selection_error('琴音')
+    weapon=registry.resolve('武器 哈姆子')
+    assert all(i.id.startswith('weapon:KOTONE-') for i in weapon.rate_up[5])
+    mapping=json.loads((Path(__file__).resolve().parents[1]/'assets/character_layers/mapping.json').read_text(encoding='utf-8'))
+    assert mapping['char:KOTONE']['name']=='汐见琴音'
+    assert mapping['char:KOTONE']['front']!=mapping['char:MONT']['front']
+    assert mapping['char:KOTONE']['front']!=mapping['char:MONT·Frostgale']['front']

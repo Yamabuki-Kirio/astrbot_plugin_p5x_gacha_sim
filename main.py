@@ -40,6 +40,7 @@ HELP_TEXT = """P5X 模拟抽卡
 /签到               每日签到领取额外抽数
 /抽卡次数           查看今日剩余抽数和签到状态
 /刷新               白名单管理员为所有已登记用户增加10抽
+/二十连抽、/三十连抽、/四十连抽 [角色名|卡池]  批量抽取
 /十连 [角色名|别名]  默认抽全限定角色池，指定名字抽对应 UP 池
 /十连 武器池         全限定武器池
 /十连 武器 <角色名|武器名>  指定武器 UP 池
@@ -133,7 +134,7 @@ class P5XGachaPlugin(Star):
             message = event.get_message_str()
         except (AttributeError, TypeError):
             message = getattr(event, "message_str", "")
-        match = re.search(r"(?:^|\s)/?(?:p5x(?:抽卡|_gacha)?\s+)?(?:十连|单抽|选择|保底)\s+(.+)$", message or "", re.I)
+        match = re.search(r"(?:^|\s)/?(?:p5x(?:抽卡|_gacha)?\s+)?(?:四十连抽|三十连抽|二十连抽|十连|单抽|选择|保底)\s+(.+)$", message or "", re.I)
         return match.group(1).strip() if match else (fallback or "").strip()
 
     def _ready(self, event: AstrMessageEvent):
@@ -190,7 +191,9 @@ class P5XGachaPlugin(Star):
             "签到": self.cmd_signin, "抽卡次数": self.cmd_quota,
             "刷新": self.cmd_refresh, "p5x签到": self.cmd_signin,
         }
-        with_args = {"十连": self.cmd_ten, "队伍": self.cmd_team}
+        with_args = {"十连": self.cmd_ten, "队伍": self.cmd_team,
+                     "二十连抽": self.cmd_twenty, "三十连抽": self.cmd_thirty,
+                     "四十连抽": self.cmd_forty}
         if grouped:
             no_args.update({"帮助": self.cmd_help, "次数": self.cmd_quota, "榜单": self.cmd_rank})
             with_args.update({"单抽": self.cmd_single, "选择": self.cmd_select,
@@ -434,6 +437,40 @@ class P5XGachaPlugin(Star):
 
     @p5x_group.command("十连", priority=1)
     async def cmd_ten(self, event: AstrMessageEvent, target: str = ""):
+        async for result in self._draw_multiple(event, target, 10):
+            yield result
+
+    @p5x_group.command("二十连抽", priority=1)
+    async def cmd_twenty(self, event: AstrMessageEvent, target: str = ""):
+        async for result in self._draw_multiple(event, target, 20):
+            yield result
+
+    @filter.command("二十连抽", priority=1)
+    async def direct_twenty(self, event: AstrMessageEvent, target: str = ""):
+        async for result in self.cmd_twenty(event, target):
+            yield result
+
+    @p5x_group.command("三十连抽", priority=1)
+    async def cmd_thirty(self, event: AstrMessageEvent, target: str = ""):
+        async for result in self._draw_multiple(event, target, 30):
+            yield result
+
+    @filter.command("三十连抽", priority=1)
+    async def direct_thirty(self, event: AstrMessageEvent, target: str = ""):
+        async for result in self.cmd_thirty(event, target):
+            yield result
+
+    @p5x_group.command("四十连抽", priority=1)
+    async def cmd_forty(self, event: AstrMessageEvent, target: str = ""):
+        async for result in self._draw_multiple(event, target, 40):
+            yield result
+
+    @filter.command("四十连抽", priority=1)
+    async def direct_forty(self, event: AstrMessageEvent, target: str = ""):
+        async for result in self.cmd_forty(event, target):
+            yield result
+
+    async def _draw_multiple(self, event: AstrMessageEvent, target: str, count: int):
         error = self._ready(event)
         if error:
             yield error
@@ -449,34 +486,40 @@ class P5XGachaPlugin(Star):
             return
         try:
             outcome = await asyncio.to_thread(
-                self.service.draw, self._platform(event), str(event.get_sender_id()), banner, 10
+                self.service.draw, self._platform(event), str(event.get_sender_id()), banner, count
             )
         except ValueError as exc:
             yield event.plain_result(f"抽卡失败：{exc}")
             return
         except Exception:  # noqa: BLE001
-            logger.exception("P5X 十连异常")
+            logger.exception("P5X 批量抽卡异常")
             yield event.plain_result("抽卡时发生错误，已记录日志。")
             return
 
         total = self.store.total_pulls(self._platform(event), str(event.get_sender_id()))
         avatar = await asyncio.to_thread(avatar_bytes, event) if self.config.get("enable_rendering", True) else None
-        text = self.service.format_ten(outcome) + f"\n累计{total}抽 · 今日剩余 {outcome.remaining} 抽"
-        chain = await self._render(
-            lambda: self.renderer.render_ten(
-                outcome.results,
-                banner,
-                user_name=display_name(event),
-                avatar=avatar,
-                footer=self._footer(banner, outcome.state, total, outcome.remaining),
-            )
-        )
+        footer = self._footer(banner, outcome.state, total, outcome.remaining)
+        pages = count // 10
+        if pages == 1:
+            chain = await self._render(lambda: self.renderer.render_ten(
+                outcome.results, banner, user_name=display_name(event), avatar=avatar, footer=footer))
+            if chain:
+                yield event.chain_result(chain)
+                if outcome.overflow_bonus:
+                    yield event.plain_result(f"满阶重复返还 {outcome.overflow_bonus} 抽，已加入今日额度；当前剩余 {outcome.remaining} 抽。")
+            else:
+                yield event.plain_result(self.service.format_ten(outcome) + f"\n累计{total}抽 · 今日剩余 {outcome.remaining} 抽")
+            return
+        summary = (f"{count}连抽 · 5★×{len(outcome.five_stars)} · 4★×{len(outcome.four_stars)}"
+                   f" · 满阶返还{outcome.overflow_bonus}抽 · 全部结算值")
+        chain = await self._render(lambda: self.renderer.render_multi(
+            outcome.results, banner, user_name=display_name(event), avatar=avatar,
+            footer=footer, summary=summary))
         if chain:
             yield event.chain_result(chain)
-            if outcome.overflow_bonus:
-                yield event.plain_result(f"满阶重复返还 {outcome.overflow_bonus} 抽，已加入今日额度；当前剩余 {outcome.remaining} 抽。")
         else:
-            yield event.plain_result(text)
+            yield event.plain_result(self.service.format_ten(outcome)
+                                     + f"\n累计{total}抽 · 今日剩余 {outcome.remaining} 抽")
 
     @p5x_group.command("保底", priority=1)
     async def cmd_pity(self, event: AstrMessageEvent, target: str = ""):

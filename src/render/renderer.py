@@ -1447,10 +1447,11 @@ class Renderer:
         caption: tuple[str, str] | None = None,
         size: tuple[int, int] = (DESIGN_W, DESIGN_H),
         avatar: bytes | None = None,
+        batch_label: str = "",
     ) -> Image.Image:
         if size != (DESIGN_W, DESIGN_H):
             # 先在设计坐标完成构图，再等比缩放/留边；不改变立绘定位算法。
-            full = self.render_ten(results, banner, user_name, footer, show_new, caption, avatar=avatar)
+            full = self.render_ten(results, banner, user_name, footer, show_new, caption, avatar=avatar, batch_label=batch_label)
             return ImageOps.pad(full, size, Image.Resampling.LANCZOS, color=(5,6,9))
         canvas = self._background(size)
         scale = self._scale(size)
@@ -1517,6 +1518,10 @@ class Renderer:
                 self._character_frame(canvas, geo, result.rarity, scale)
         self._blue_cutlines(canvas)
         self._user_panel(canvas, user_name, footer, avatar)
+        if batch_label:
+            draw = ImageDraw.Draw(canvas)
+            draw.rounded_rectangle((38, 47, 760, 103), radius=8, fill=(5, 7, 18, 235))
+            draw.text((56, 55), batch_label, font=self.font(28), fill=(235, 239, 255))
 
         return canvas.convert("RGB")
 
@@ -1536,6 +1541,22 @@ class Renderer:
                       width=max(5, int(8 * scale)), joint="curve")
         black = Image.new("RGBA", canvas.size, (2, 2, 4, 255))
         canvas.paste(black, (0, 0), borders)
+
+    def render_multi(self, results, banner=None, user_name="", footer="", avatar=None, summary=""):
+        """20/30/40抽按十张一行合成单图，避免发送多张图片。"""
+        if len(results) not in (20, 30, 40):
+            raise ValueError("批量结果必须为20、30或40抽")
+        pages = len(results) // 10
+        header_height = 80
+        canvas = Image.new("RGB", (DESIGN_W, header_height + DESIGN_H * pages), (5, 7, 18))
+        draw = ImageDraw.Draw(canvas)
+        draw.text((40, 22), summary, font=self.font(30), fill=(235, 239, 255))
+        for page in range(pages):
+            label = f"第{page+1}/{pages}组 · 第{page*10+1}—{(page+1)*10}抽 · 全部结算值"
+            row = self.render_ten(results[page*10:(page+1)*10], banner,
+                                  user_name=user_name, footer=footer, avatar=avatar, batch_label=label)
+            canvas.paste(row, (0, header_height + page * DESIGN_H))
+        return canvas
 
     def render_single(
         self,

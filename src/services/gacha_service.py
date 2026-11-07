@@ -69,8 +69,8 @@ class GachaService:
 
     # ------------------------------------------------------------------
     def draw(self, platform_id: str, user_id: str, banner: Banner, count: int) -> DrawOutcome:
-        if count not in (1, 10):
-            raise ValueError("只支持单抽或十连")
+        if isinstance(count, bool) or not isinstance(count, int) or count not in (1, 10, 20, 30, 40):
+            raise ValueError("只支持单抽、十连、二十连抽、三十连抽或四十连抽")
         if not banner.enabled:
             raise ValueError(f"卡池「{banner.name}」已停用")
         started = time.perf_counter()
@@ -169,7 +169,8 @@ class GachaService:
         return "".join(parts)
 
     def format_ten(self, outcome: DrawOutcome) -> str:
-        lines = [f"【{outcome.banner.name}】十连结果"]
+        label = {10: "十连", 20: "二十连抽", 30: "三十连抽", 40: "四十连抽"}.get(len(outcome.results), f"{len(outcome.results)}抽")
+        lines = [f"【{outcome.banner.name}】{label}结果"]
         for index, result in enumerate(outcome.results, 1):
             lines.append(f"{index:>2}. {self.format_result_line(result)}")
         lines.append(

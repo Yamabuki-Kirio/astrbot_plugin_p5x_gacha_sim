@@ -205,3 +205,17 @@ def test_insufficient_quota_does_not_anticipate_duplicate_refunds(env):
     with pytest.raises(ValueError):s.draw('qq','u',r.banner('char_all_limited'),1)
     assert s.team_of('qq','u')[0].copies==7 and s.quota_of('qq','u').remaining==0
     assert store.total_pulls('qq','u')==0
+
+
+@pytest.mark.parametrize('count',[20,30,40])
+def test_bulk_duplicates_cap_and_refund_across_rows(env,count):
+    r,store,s=env
+    s.daily_pulls=count
+    item=r.item('char:KOTONE')
+    s.mechanics=FixedResults([item])
+    result=s.draw('qq','u',r.banner('char_all_limited'),count)
+    assert result.overflow_bonus==(count-7)*10
+    assert result.remaining==(count-7)*10
+    assert s.team_of('qq','u')[0].level==6
+    assert store.total_pulls('qq','u')==count
+    assert store.count_history('qq','u')==count

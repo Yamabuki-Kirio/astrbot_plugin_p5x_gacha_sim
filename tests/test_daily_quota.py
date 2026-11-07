@@ -246,3 +246,38 @@ def test_refresh_zero_remains_plus_ten_after_limit_reduced(env):
     assert s.quota_of('qq','u').remaining==0
     assert s.refresh_all()==1
     assert s.quota_of('qq','u').remaining==10
+
+
+@pytest.mark.parametrize('count',[20,30,40])
+def test_multi_draw_atomic_success_and_rollback(env,monkeypatch,count):
+    r,store,s,_=env
+    s.daily_pulls=100
+    banner=r.banner('char_all_limited')
+    outcome=s.draw('qq','u',banner,count)
+    assert len(outcome.results)==count and outcome.cost==banner.cost*count
+    assert store.total_pulls('qq','u')==count
+    assert s.quota_of('qq','u').used==count
+    before=s.state_of('qq','u',banner)
+    owned=store.owned_items('qq','u')
+    remaining=s.quota_of('qq','u').remaining
+    original=store.add_owned
+    calls=[0]
+    def fail(*args):
+        calls[0]+=1
+        result=original(*args)
+        if calls[0]==15:raise RuntimeError('midway failure')
+        return result
+    monkeypatch.setattr(store,'add_owned',fail)
+    with pytest.raises(RuntimeError):s.draw('qq','u',banner,count)
+    assert s.state_of('qq','u',banner)==before
+    assert s.quota_of('qq','u').remaining==remaining
+    assert store.owned_items('qq','u')==owned
+
+
+def test_multi_draw_cannot_spend_future_duplicate_rewards(env,monkeypatch):
+    r,store,s,_=env
+    s.daily_pulls=10
+    with pytest.raises(ValueError,match='本次需要 20 抽'):
+        s.draw('qq','u',r.banner('char_all_limited'),20)
+    for invalid in (True,20.0,0,11,50):
+        with pytest.raises(ValueError):s.draw('qq','u',r.banner('char_all_limited'),invalid)

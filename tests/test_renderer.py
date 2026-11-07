@@ -349,7 +349,8 @@ def test_high_rarity_is_centered_without_changing_geometry(registry, renderer):
 def test_foundation_size_increases_with_rarity():
     sizes = [foundation_geometry(4, rarity) for rarity in (2, 3, 4, 5)]
     assert sizes[0].width == sizes[1].width == sizes[2].width
-    assert sizes[0].height == sizes[1].height == sizes[2].height
+    assert sizes[0].height == sizes[1].height
+    assert sizes[1].height < sizes[2].height
     assert sizes[3].width > sizes[2].width
     assert sizes[3].height > sizes[2].height
 
@@ -430,3 +431,12 @@ def test_bloom_has_no_light_on_left_or_right_sides(renderer):
         bottom=int(geometry.quad[3][1])
         assert alpha.crop((0,top,DESIGN_W,bottom+1)).getbbox() is None
         assert alpha.getbbox() is not None
+
+
+def test_gold_cards_taller_than_low_and_shorter_than_five_in_all_slots():
+    for slot in range(10):
+        low,gold,five=[foundation_geometry(slot,r) for r in (3,4,5)]
+        assert low.height < gold.height < five.height
+        assert abs(gold.height / DESIGN_H - .82)<.001
+        assert five.top < gold.top
+        assert gold.quad[3][1] < five.quad[3][1]

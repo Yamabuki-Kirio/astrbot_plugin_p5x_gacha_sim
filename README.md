@@ -73,6 +73,17 @@ v0.3.4：四星补强金色边缘柔光、亮芯与星芒；五星增强紫色�
 
 </details>
 
+<details>
+<summary>查看四星金卡加高效果（v0.3.6，点击展开）</summary>
+
+四星角色与武器卡槽加高至画布的82%，五星保持90%，保留高低层级。光效仍然只位于顶部与底部。
+
+![四星角色卡加高效果](docs/images/gold-taller.jpg)
+
+![四星与五星武器卡高度对照](docs/images/gold-weapon-taller.jpg)
+
+</details>
+
 ## 快速开始
 
 安装并重载插件后，依次发送：
@@ -353,7 +364,7 @@ p5x 保底
 
 ## 维护与开发
 
-- [更新记录：v0.3.5](UPDATE-v0.3.5.md) · [v0.3.4](UPDATE-v0.3.4.md) · [v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
+- [更新记录：v0.3.6](UPDATE-v0.3.6.md) · [v0.3.5](UPDATE-v0.3.5.md) · [v0.3.4](UPDATE-v0.3.4.md) · [v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
 - [素材说明](assets/README.md) · [图层说明](assets/character_layers/README.md) · [数据与素材准备清单](docs/准备清单.md)
 - 卡池配置：`data/banners.json`；角色／武器条目：`data/items/`。
 - 角色定位：`assets/character_layers/placement.json`；低星人格面具定位：`assets/persona_placement.json`。

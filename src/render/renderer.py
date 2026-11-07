@@ -231,6 +231,12 @@ def foundation_geometry(index: int, rarity: int, window: int | None = None) -> C
     (tlx, tly), (_trx, _), (_brx, bry), (blx, _) = base.quad
     top = tly - spec["grow_top"]
     bottom = bry + spec["grow_bottom"]
+    if rarity == 4:
+        # 金色角色与武器共用82%画幅高度，保留错落且始终低于五星。
+        height = DESIGN_H * .82
+        center = (tly + bry) / 2
+        top = max(DESIGN_H*.06, min(center-height/2, DESIGN_H*.12))
+        bottom = top + height
     if rarity >= 5:
         # 实机最高星卡片约占全图九成高度，保留上下各5%的呼吸空间。
         top, bottom = DESIGN_H * .05, DESIGN_H * .95
@@ -1516,8 +1522,8 @@ class Renderer:
         canvas = self._background(size)
         scale = 1.0
         # 单抽使用更宽的主视觉卡槽；几何直接采用输出坐标。
-        width, height = size[0] * .27, size[1] * (.90 if result.rarity >= 5 else .78)
-        top, slant = size[1] * (.05 if result.rarity >= 5 else .08), -size[0] * .09
+        width, height = size[0] * .27, size[1] * (.90 if result.rarity >= 5 else .84 if result.rarity == 4 else .78)
+        top, slant = size[1] * (.05 if result.rarity >= 5 else .065 if result.rarity == 4 else .08), -size[0] * .09
         left = size[0] / 2 - width / 2 - slant / 2
         shifted = CardGeometry(
             quad=((left,top),(left+width,top),(left+width+slant,top+height),(left+slant,top+height)),

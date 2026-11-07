@@ -417,3 +417,16 @@ def test_external_glow_never_overlays_card_faces(registry,renderer,monkeypatch):
             for f in (.2,.4,.6,.8):
                 x=int(left+geo.width*f)
                 assert lit.getpixel((x,y))==plain.getpixel((x,y))
+
+
+def test_bloom_has_no_light_on_left_or_right_sides(renderer):
+    from PIL import Image
+    geometry=foundation_geometry(4,5)
+    for rarity in (4,5):
+        effect=Image.new('RGBA',(DESIGN_W,DESIGN_H))
+        renderer._five_flare(effect,geometry,1,rarity)
+        alpha=effect.getchannel('A')
+        top=int(geometry.quad[0][1])
+        bottom=int(geometry.quad[3][1])
+        assert alpha.crop((0,top,DESIGN_W,bottom+1)).getbbox() is None
+        assert alpha.getbbox() is not None

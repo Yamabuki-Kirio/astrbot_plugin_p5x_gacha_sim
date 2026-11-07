@@ -980,58 +980,46 @@ class Renderer:
         return segments + ((1, .32+phase*.08, .46+phase*.08),) if rarity >= 5 else segments
 
     def _five_flare(self, canvas, geometry, scale, rarity=5, item_id="", slot=0):
-        """只在卡片外轮廓产生柔和泛光，卡面内部 alpha 严格为零。"""
+        """泛光仅存在于卡片顶边以上和底边以下，不产生左右侧光晕。"""
         if rarity < 4:
             return
-        points=[(x*scale,y*scale) for x,y in geometry.quad]
-        color=CARD_LIGHTING[5 if rarity>=5 else 4]["tint"]
-        padding=round(95*scale)
-        x0=max(0,int(min(x for x,y in points))-padding)
-        y0=max(0,int(min(y for x,y in points))-padding)
-        x1=min(canvas.width,int(max(x for x,y in points))+padding+1)
-        y1=min(canvas.height,int(max(y for x,y in points))+padding+1)
-        if x1<=x0 or y1<=y0:
-            return
-        local=[(x-x0,y-y0) for x,y in points]
-        source=Image.new("RGBA",(x1-x0,y1-y0))
-        draw=ImageDraw.Draw(source)
-        draw.line(local+[local[0]],fill=(*color,190 if rarity>=5 else 155),
-                  width=max(5,round((17 if rarity>=5 else 13)*scale)),joint="curve")
-        inside=Image.new("L",source.size)
-        ImageDraw.Draw(inside).polygon(local,fill=255)
-        outside=ImageChops.invert(inside)
-        for radius in (25,7):
-            glow=source.filter(ImageFilter.GaussianBlur(radius*scale))
-            glow.putalpha(ImageChops.multiply(glow.getchannel("A"),outside))
-            canvas.alpha_composite(glow,(x0,y0))
+        lighting=CARD_LIGHTING[5 if rarity>=5 else 4]
+        color=lighting["tint"]
+        reach=lighting["reach"]*scale
+        top=geometry.quad[0][1]*scale
+        bottom=geometry.quad[3][1]*scale
+        for a,b,sign in ((geometry.quad[0],geometry.quad[1],-1),
+                         (geometry.quad[3],geometry.quad[2],1)):
+            cx=(a[0]+b[0])*.5*scale
+            y=a[1]*scale
+            half=geometry.width*scale*.43
+            pad=round(75*scale)
+            x0=max(0,int(cx-half)-pad)
+            x1=min(canvas.width,int(cx+half)+pad+1)
+            y0=max(0,int(min(y,y+sign*reach))-pad)
+            y1=min(canvas.height,int(max(y,y+sign*reach))+pad+1)
+            if x1<=x0 or y1<=y0:
+                continue
+            source=Image.new("RGBA",(x1-x0,y1-y0))
+            draw=ImageDraw.Draw(source)
+            draw.polygon([(cx-half-x0,y-y0),(cx+half-x0,y-y0),
+                          (cx+half*.32-x0,y+sign*reach-y0),
+                          (cx-half*.32-x0,y+sign*reach-y0)],
+                         fill=(*color,lighting["haze_alpha"]))
+            for radius in (26,10):
+                glow=source.filter(ImageFilter.GaussianBlur(radius*scale))
+                alpha=glow.getchannel("A")
+                # 严格清除顶底之间整条水平带，模糊也不能泄漏到左右侧。
+                ImageDraw.Draw(alpha).rectangle((0,max(0,int(top)-y0),
+                                                 glow.width,min(glow.height,int(bottom)-y0)),fill=0)
+                glow.putalpha(alpha)
+                canvas.alpha_composite(glow,(x0,y0))
 
     def _high_star_backlight(self, canvas, geometries, results, scale):
-        """卡外顶底光束先画在背景上，所有底版及黑衬底均遮挡它。"""
-        haze = Image.new("RGBA", canvas.size)
-        rays = Image.new("RGBA", canvas.size)
-        hd, rd = ImageDraw.Draw(haze), ImageDraw.Draw(rays)
-        for slot, (geo, result) in enumerate(zip(geometries, results)):
-            if result.rarity < 4:
-                continue
-            self._five_flare(canvas, geo, scale, result.rarity, result.item.id, slot)
-            lighting = CARD_LIGHTING[5 if result.rarity >= 5 else 4]
-            color = lighting["tint"]
-            reach = lighting["reach"] * scale
-            for end in (0, 1):
-                a, b = (geo.quad[0], geo.quad[1]) if end == 0 else (geo.quad[3], geo.quad[2])
-                cx, y = (a[0]+b[0])*.5*scale, a[1]*scale
-                sign = -1 if end == 0 else 1
-                dx = -sign * 22 * scale
-                half = geo.width * scale * (.43 if result.rarity >= 5 else .32)
-                hd.polygon([(cx-half,y),(cx+half,y),(cx+dx+half*.4,y+sign*reach),
-                            (cx+dx-half*.4,y+sign*reach)], fill=(*color,lighting["haze_alpha"]))
-                for n in range(4 if result.rarity>=5 else 2):
-                    x = cx+(n-1.5)*13*scale + (slot%3)*4*scale
-                    rd.line([(x,y),(x+dx,y+sign*reach*(.55+.1*((slot+n)%4)))],
-                            fill=(*color,160 if result.rarity >= 5 else 125), width=max(1,round(2*scale)))
-        canvas.alpha_composite(haze.filter(ImageFilter.GaussianBlur(max(2,int(28*scale)))))
-        canvas.alpha_composite(haze.filter(ImageFilter.GaussianBlur(max(2,int(12*scale)))))
-        canvas.alpha_composite(rays.filter(ImageFilter.GaussianBlur(max(1.5,scale*2.5))))
+        """只在卡片顶端与底端背后绘制泛光。"""
+        for slot,(geo,result) in enumerate(zip(geometries,results)):
+            if result.rarity>=4:
+                self._five_flare(canvas,geo,scale,result.rarity,result.item.id,slot)
 
     def _result_card(self, result: PullResult, geometry: CardGeometry, scale: float, art_layer: bool = True,
                      slot: int = 0, with_reward: bool = True, base_alpha: int = 255):

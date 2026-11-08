@@ -387,7 +387,7 @@ class P5XGachaPlugin(Star):
             yield event.plain_result(self.registry.selection_error(target))
             return
         self.store.set_default_banner(self._platform(event), str(event.get_sender_id()), banner.id)
-        yield event.plain_result(f"已把默认卡池设为「{banner.name}」。")
+        yield event.plain_result(f"已把单抽及保底查询的默认卡池设为「{banner.name}」。\n不带参数的十连及批量抽卡仍使用全限定角色池；抽指定池请在本次命令中填写目标。")
 
     @p5x_group.command("单抽", priority=1)
     async def cmd_single(self, event: AstrMessageEvent, target: str = ""):
@@ -477,7 +477,8 @@ class P5XGachaPlugin(Star):
             return
         target = self._target(event, target)
         try:
-            banner = self._resolve(event, target)
+            # 裸发批量抽卡始终回到全角色随机池，不继承个人选择或配置的 UP 池。
+            banner = self.registry.resolve(target) if target else self.registry.banner("char_all_limited")
         except ValueError as exc:
             yield event.plain_result(f"默认卡池配置错误：{exc}")
             return

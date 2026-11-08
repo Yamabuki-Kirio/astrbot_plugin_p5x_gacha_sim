@@ -24,14 +24,14 @@
     "default": ""
   },
   "default_pool_type": {
-    "description": "默认抽取类型",
+    "description": "单抽及保底查询的默认类型",
     "type": "string",
     "options": [
       "character",
       "weapon"
     ],
     "default": "character",
-    "hint": "character：全限定角色池；weapon：全限定武器池。"
+    "hint": "character：全限定角色池；weapon：全限定武器池。不带参数的批量抽卡固定使用全限定角色池，不受此配置影响。"
   },
   "selected_character": {
     "description": "默认 UP 角色",

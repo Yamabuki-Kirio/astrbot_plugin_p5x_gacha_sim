@@ -78,6 +78,14 @@ def test_defaults_config_personal_explicit_precedence(plugin):
     run(plugin.cmd_select(Event('/p5x 选择 全角色池'),'全角色池'))
     assert plugin._resolve(Event(),'').id=='char_all_limited'
 
+
+def test_bare_ten_ignores_saved_and_configured_target(plugin):
+    plugin.config['selected_character'] = '鬼太郎'
+    run(plugin.cmd_select(Event('/p5x 选择 哈姆子'), '哈姆子'))
+    assert '全限定角色池' in run(plugin.direct_ten(Event('/十连')))[0]
+    assert '汐见琴音·角色池' in run(plugin.direct_ten(Event('/十连 哈姆子'), '哈姆子'))[0]
+    assert '全限定角色池' in run(plugin.direct_ten(Event('/十连')))[0]
+
 def test_roster_text_and_image_paths(plugin,monkeypatch):
     output=run(plugin.direct_banners(Event('/卡池')))
     assert len(output)==1 and '无单独UP' in output[0]
@@ -100,8 +108,8 @@ def test_bad_and_ambiguous_input_do_not_draw(plugin):
         assert '没有找到' in result[0] or '歧义' in result[0] or '限定' in result[0]
     assert plugin.store.total_pulls('qq','123')==0
     plugin.config['selected_character']='typo'
-    assert '配置错误' in run(plugin.direct_ten(Event('/十连')))[0]
-    assert plugin.store.total_pulls('qq','123')==0
+    assert '全限定角色池' in run(plugin.direct_ten(Event('/十连')))[0]
+    assert plugin.store.total_pulls('qq','123')==10
 
 def test_pity_and_number_selection(plugin):
     result=run(plugin.cmd_select(Event('/p5x 选择 1'),'1'))

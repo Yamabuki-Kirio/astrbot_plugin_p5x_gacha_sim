@@ -19,7 +19,7 @@
       "5": 80,
       "4": 10
     },
-    "soft_pity": [],
+    "soft_pity": [{"start": 51, "end": 60, "increment": 0.0103}, {"start": 61, "end": 79, "increment": 0.0445}],
     "pool": {
       "5": [
         "char:JOKER·Starlight",
@@ -157,7 +157,7 @@
       "5": 80,
       "4": 10
     },
-    "soft_pity": [],
+    "soft_pity": [{"start": 51, "end": 60, "increment": 0.0103}, {"start": 61, "end": 79, "increment": 0.0445}],
     "selector_at": 300,
     "pool": {
       "5": [
@@ -289,7 +289,7 @@
       "5": 70,
       "4": 10
     },
-    "soft_pity": [],
+    "soft_pity": [{"start": 51, "end": 69, "increment": 0.05}],
     "pool": {
       "5": [
         "weapon:JOKER·Starlight-weapon5-1",
@@ -504,7 +504,7 @@
       "5": 70,
       "4": 10
     },
-    "soft_pity": [],
+    "soft_pity": [{"start": 51, "end": 69, "increment": 0.05}],
     "pool": {
       "5": [
         "weapon:NAVI-weapon5-1",

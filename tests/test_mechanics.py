@@ -147,6 +147,26 @@ def test_soft_pity_increments():
     assert GachaMechanics.five_rate(PityState(pity5=70), banner) == pytest.approx(0.208)
 
 
+def test_shipped_simulator_soft_pity():
+    registry = Registry.load()
+    for banner in registry.banners.values():
+        start = 61 if banner.kind == "character" else 51
+        hard = 80 if banner.kind == "character" else 70
+        cases = ((1, 0.008), (start - 1, 0.008), (start, 0.058),
+                 (start + 9, 0.508), (hard - 1, 0.958), (hard, 1.0))
+        if banner.kind == "character":
+            cases = ((1, 0.008), (50, 0.008), (51, 0.0183), (60, 0.111),
+                     (61, 0.1555), (70, 0.556), (79, 0.9565), (80, 1.0))
+            import math
+            miss = math.prod(1 - GachaMechanics.five_rate(PityState(pity5=n-1), banner)
+                             for n in range(51, 61))
+            assert 1 - miss == pytest.approx(0.49, abs=0.00001)
+        for count, expected in cases:
+            assert GachaMechanics.five_rate(
+                PityState(pity5=count - 1), banner
+            ) == pytest.approx(expected), (banner.id, count)
+
+
 # ----------------------------------------------------------------------
 # 小保底 / UP
 # ----------------------------------------------------------------------

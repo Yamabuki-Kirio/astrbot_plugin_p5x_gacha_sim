@@ -70,12 +70,23 @@ class GachaService:
     # ------------------------------------------------------------------
     def draw(self, platform_id: str, user_id: str, banner: Banner, count: int) -> DrawOutcome:
         if isinstance(count, bool) or not isinstance(count, int) or count not in (1, 10, 20, 30, 40):
-            raise ValueError("只支持单抽、十连、二十连抽、三十连抽或四十连抽")
+            raise ValueError("只支持单抽、十连、二十连、三十连或四十连")
+        return self._draw(platform_id, user_id, banner, count)
+
+    def draw_all(self, platform_id, user_id, banner):
+        """只消耗加锁时的现有额度，本次返还留待下次。"""
+        return self._draw(platform_id, user_id, banner, None)
+
+    def _draw(self, platform_id, user_id, banner, count):
         if not banner.enabled:
             raise ValueError(f"卡池「{banner.name}」已停用")
         started = time.perf_counter()
         with self._lock, self.store.transaction():
             quota = self.quota_of(platform_id, user_id)
+            if count is None:
+                count = quota.remaining
+                if count == 0:
+                    raise ValueError("今日剩余 0 抽；未签到可发送 /签到 领取奖励，已签到请等待北京时间零点刷新。")
             if quota.remaining < count:
                 tip = "可发送 /签到 领取今日奖励。" if not quota.signed else "今日已签到，请在北京时间零点刷新后再来。"
                 raise ValueError(f"今日剩余 {quota.remaining} 抽，本次需要 {count} 抽。{tip}")
@@ -169,7 +180,7 @@ class GachaService:
         return "".join(parts)
 
     def format_ten(self, outcome: DrawOutcome) -> str:
-        label = {10: "十连", 20: "二十连抽", 30: "三十连抽", 40: "四十连抽"}.get(len(outcome.results), f"{len(outcome.results)}抽")
+        label = {10: "十连", 20: "二十连", 30: "三十连", 40: "四十连"}.get(len(outcome.results), f"{len(outcome.results)}抽")
         lines = [f"【{outcome.banner.name}】{label}结果"]
         for index, result in enumerate(outcome.results, 1):
             lines.append(f"{index:>2}. {self.format_result_line(result)}")

@@ -298,7 +298,7 @@ def test_plain_signin_quota_help_team_and_admin(plugin):
     assert run(plugin.handle_plain_commands(Event('十连'))) == []
 
 
-@pytest.mark.parametrize('count,method,label', [(20,'direct_twenty','二十连抽'),(30,'direct_thirty','三十连抽'),(40,'direct_forty','四十连抽')])
+@pytest.mark.parametrize('count,method,label', [(20,'direct_twenty','二十连'),(30,'direct_thirty','三十连'),(40,'direct_forty','四十连')])
 def test_multi_draw_command_counts_and_exact_plain_match(plugin,count,method,label):
     event=Event('/'+label+' 哈姆子')
     output=run(getattr(plugin,method)(event,'哈姆子'))
@@ -314,7 +314,7 @@ def test_multi_draw_command_counts_and_exact_plain_match(plugin,count,method,lab
 
 def test_multi_draw_rejects_insufficient_budget_as_one_operation(plugin):
     plugin.service.daily_pulls=20
-    result=run(plugin.direct_forty(Event('/四十连抽')))
+    result=run(plugin.direct_forty(Event('/四十连')))
     assert len(result)==1 and '本次需要 40 抽' in result[0]
     assert plugin.store.total_pulls('qq','123')==0
     assert plugin.service.quota_of('qq','123').remaining==20
@@ -332,7 +332,7 @@ def test_multi_draw_render_single_composite_and_fallback_without_redraw(plugin,m
         calls.append((len(results),kwargs))
         return original(results,banner,**kwargs)
     monkeypatch.setattr(plugin.renderer,'render_ten',render)
-    output=run(plugin.direct_thirty(Event('/三十连抽 武器池'),'武器池'))
+    output=run(plugin.direct_thirty(Event('/三十连 武器池'),'武器池'))
     assert len(output)==1 and len(output[0])==1
     with Image.open(io.BytesIO(output[0][0])) as image:
         assert image.size==(1920,80+873*3)
@@ -342,6 +342,36 @@ def test_multi_draw_render_single_composite_and_fallback_without_redraw(plugin,m
     assert plugin.store.total_pulls('qq','123')==30
     def fail(*args,**kwargs):raise RuntimeError('render failure')
     monkeypatch.setattr(plugin.renderer,'render_ten',fail)
-    output=run(plugin.direct_twenty(Event('/二十连抽')))
-    assert len(output)==1 and '二十连抽结果' in output[0]
+    output=run(plugin.direct_twenty(Event('/二十连')))
+    assert len(output)==1 and '二十连结果' in output[0]
     assert plugin.store.total_pulls('qq','123')==50
+
+@pytest.mark.parametrize('command', ['/抽卡 哈姆子','抽卡 哈姆子','p5x 抽卡 哈姆子'])
+def test_draw_all_direct_and_plain_remaining(plugin,command):
+    plugin.service.daily_pulls=17
+    plugin.config['enable_plain_commands']=True
+    event=Event(command)
+    output=run(plugin.direct_draw_all(event,'哈姆子')) if command.startswith('/') else run(plugin.handle_plain_commands(event))
+    assert len(output)==1 and '汐见琴音' in output[0]
+    assert plugin.store.total_pulls('qq','123')==17
+    assert plugin.service.quota_of('qq','123').remaining==0
+    assert '剩余 0 抽' in run(plugin.direct_draw_all(Event('/抽卡')))[0]
+    assert plugin.store.total_pulls('qq','123')==17
+
+
+def test_draw_all_split_images_and_partial_last_row(plugin,monkeypatch):
+    import io
+    from PIL import Image
+    plugin.service.daily_pulls=57
+    plugin.config['enable_rendering']=True
+    module=sys.modules[type(plugin).__module__]
+    monkeypatch.setattr(module,'avatar_bytes',lambda event:None)
+    output=run(plugin.direct_draw_all(Event('/抽卡')))
+    assert len(output)==2
+    for result,rows in zip(output,[4,2]):
+        with Image.open(io.BytesIO(result[0])) as image:
+            assert image.size==(1920,80+873*rows)
+    assert plugin.store.total_pulls('qq','123')==57
+    assert plugin.service.quota_of('qq','123').remaining==0
+    plugin.config['enable_plain_commands']=False
+    assert run(plugin.handle_plain_commands(Event('抽卡')))==[]

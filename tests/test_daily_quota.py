@@ -281,3 +281,24 @@ def test_multi_draw_cannot_spend_future_duplicate_rewards(env,monkeypatch):
         s.draw('qq','u',r.banner('char_all_limited'),20)
     for invalid in (True,20.0,0,11,50):
         with pytest.raises(ValueError):s.draw('qq','u',r.banner('char_all_limited'),invalid)
+
+def test_draw_all_uses_remainder_and_preserves_new_refunds(env, monkeypatch):
+    r,store,s,_=env
+    s.daily_pulls=17
+    monkeypatch.setattr(store,'add_owned',lambda *args:1)
+    outcome=s.draw_all('qq','u',r.banner('char_all_limited'))
+    assert len(outcome.results)==17
+    assert outcome.overflow_bonus==170
+    assert outcome.remaining==170
+    assert store.total_pulls('qq','u')==17
+
+
+def test_draw_all_concurrent_cannot_reuse_existing_budget(env):
+    r,store,s,_=env;s.daily_pulls=7
+    def attempt():
+        try:return len(s.draw_all('qq','u',r.banner('char_all_limited')).results)
+        except ValueError:return 0
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        assert sorted(pool.map(lambda _:attempt(),range(2)))==[0,7]
+    assert store.total_pulls('qq','u')==7
+    assert s.quota_of('qq','u').remaining==0

@@ -1501,16 +1501,16 @@ class Renderer:
         canvas.paste(black, (0, 0), borders)
 
     def render_multi(self, results, banner=None, user_name="", footer="", avatar=None, summary=""):
-        """20/30/40抽按十张一行合成单图，避免发送多张图片。"""
-        if len(results) not in (20, 30, 40):
-            raise ValueError("批量结果必须为20、30或40抽")
-        pages = len(results) // 10
+        """1至40抽按至多十张一行合成单图。"""
+        if not 1 <= len(results) <= 40:
+            raise ValueError("批量结果必须为1至40抽")
+        pages = (len(results) + 9) // 10
         header_height = 80
         canvas = Image.new("RGB", (DESIGN_W, header_height + DESIGN_H * pages), (5, 7, 18))
         draw = ImageDraw.Draw(canvas)
         draw.text((40, 22), summary, font=self.font(30), fill=(235, 239, 255))
         for page in range(pages):
-            label = f"第{page+1}/{pages}组 · 第{page*10+1}—{(page+1)*10}抽 · 全部结算值"
+            label = f"第{page+1}/{pages}组 · 第{page*10+1}—{min((page+1)*10, len(results))}抽 · 全部结算值"
             row = self.render_ten(results[page*10:(page+1)*10], banner,
                                   user_name=user_name, footer=footer, avatar=avatar, batch_label=label)
             canvas.paste(row, (0, header_height + page * DESIGN_H))

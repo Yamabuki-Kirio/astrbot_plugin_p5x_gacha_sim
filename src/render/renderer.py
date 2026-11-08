@@ -302,7 +302,7 @@ class Renderer:
         image = None
         if relative:
             try:
-                image = Image.open(self.assets / relative).convert("RGBA")
+                image = Image.open(self._runtime_asset(self.assets / relative)).convert("RGBA")
                 box = image.getchannel("A").getbbox()
                 if box:
                     image = image.crop(box)
@@ -314,7 +314,7 @@ class Renderer:
     def _background(self, size: tuple[int, int]) -> Image.Image:
         if size in self._background_cache:
             return self._background_cache[size].copy()
-        path = self.assets / "p5x-gacha-background-v1.png"
+        path = self._runtime_asset(self.assets / "p5x-gacha-background-v1.png")
         if path.exists():
             with Image.open(path) as source:
                 source = source.convert("RGB")
@@ -480,8 +480,8 @@ class Renderer:
         entry = self._character_mapping.get(item.id)
         if entry:
             def runtime_path(name):
-                prepared = root / "prepared" / name
-                return prepared if prepared.is_file() else root / name
+                prepared = self._runtime_asset(root / "prepared" / name)
+                return prepared if prepared.is_file() else self._runtime_asset(root / name)
             front = runtime_path(entry["front"])
             back = runtime_path(entry["back"]) if entry.get("back") else None
             if front.is_file() and (back is None or back.is_file()):
@@ -491,6 +491,12 @@ class Renderer:
         back_name = {"joker": "joker-02-new", "marian": "marian02"}.get(code, code+"-02")
         back = files.get(f"lihui-guaidao-{back_name}.png")
         return (front, back) if front and back else None
+
+    @staticmethod
+    def _runtime_asset(path):
+        """Prefer compressed assets, retaining compatibility with PNG manifests."""
+        webp = path.with_suffix(".webp")
+        return webp if webp.is_file() else path
 
     def _source_art(self, path):
         if not hasattr(self, "_source_cache"):
@@ -1054,7 +1060,7 @@ class Renderer:
                     f"chouka-jieguo-wuqidi{3 if rarity >= 5 else 2 if rarity == 4 else 1}.png"
                     if kind == "weapon" else
                     f"chouka-jieguo-xibie-{names.get(element, 'wan')}.png")
-        path = root / filename
+        path = self._runtime_asset(root / filename)
         if not path.is_file():
             return False
         tl, tr, br, bl = quad
@@ -1090,8 +1096,8 @@ class Renderer:
         if kind != "character_edge":
             canvas.alpha_composite(layer)
         if rarity >= 4 and kind not in ("character", "char"):
-            quality = root / ("chouka-jieguo-pinzhicai.png" if rarity >= 5
-                              else "chouka-jieguo-pinzhijin.png")
+            quality = self._runtime_asset(root / ("chouka-jieguo-pinzhicai.png" if rarity >= 5
+                              else "chouka-jieguo-pinzhijin.png"))
             if quality.is_file():
                 # 品质层只露出窄边，不能覆盖属性底纹或黑色衬底。
                 ring = Image.new("L", canvas.size)
@@ -1106,7 +1112,7 @@ class Renderer:
 
     def _character_frame(self, canvas, geometry, rarity, scale=1):
         """原始左边+底边品质框，最后覆盖立绘；右侧黑分隔不参与该框映射。"""
-        path = self.assets / "gacha_native" / f"character-frame-{5 if rarity >= 5 else 4}.png"
+        path = self._runtime_asset(self.assets / "gacha_native" / f"character-frame-{5 if rarity >= 5 else 4}.png")
         if not path.is_file() or rarity < 4:
             return
         tl, tr, br, bl = [(x*scale, y*scale) for x,y in geometry.quad]

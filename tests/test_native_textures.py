@@ -1,8 +1,22 @@
+from pathlib import Path
+
 from PIL import Image
 
 from src.render.renderer import Renderer
 from src.render.renderer import foundation_geometry
 from src.core.models import Item
+
+
+def test_runtime_webp_preferred_with_legacy_png_fallback(tmp_path):
+    png = tmp_path / "texture.png"
+    webp = tmp_path / "texture.webp"
+    original = Image.new("RGBA", (32, 48), (70, 110, 180, 143))
+    original.save(png)
+    assert Renderer._runtime_asset(png) == png
+    original.save(webp, lossless=True, exact=True)
+    assert Renderer._runtime_asset(png) == webp
+    assert Renderer._runtime_asset(webp) == webp
+    assert Image.open(Renderer._runtime_asset(png)).convert("RGBA").tobytes() == original.tobytes()
 
 
 def test_native_texture_does_not_double_shear():
@@ -70,10 +84,10 @@ def test_explicit_visual_mapping_files_exist():
     for code, entry in mapping.items():
         pair = renderer._character_pair(Item(code, entry["name"], "character", 5))
         assert pair is not None, code
-        assert pair[0].name == entry["front"]
+        assert pair[0].stem == Path(entry["front"]).stem
         assert pair[0].is_file()
         if entry["back"]:
-            assert pair[1].name == entry["back"] and pair[1].is_file()
+            assert pair[1].stem == Path(entry["back"]).stem and pair[1].is_file()
     assert mapping["char:KEY"]["front"] == "lihui-guaidao-kii.png"
     assert mapping["char:MESSA"]["front"] == "lihui-guaidao-doctor.png"
     assert mapping["char:MONA·Starlight"]["front"] == "PC067_01_01_04_01.png"

@@ -1,0 +1,14 @@
+{
+  "char:AEGIS": {
+    "front": "PC063_thief_01_05_02.webp",
+    "back": "PC063_thief_01_05_01.webp"
+  },
+  "char:FUKA": {
+    "front": "lihui-guaidao-fuka-2.webp",
+    "back": "lihui-guaidao-fuka-shilian.webp"
+  },
+  "char:JUNPEI": {
+    "front": "lihui-guaidao-junpei-2.webp",
+    "back": "lihui-guaidao-junpei-shilian.webp"
+  }
+}

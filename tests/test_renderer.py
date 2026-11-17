@@ -394,10 +394,32 @@ def test_gold_and_purple_effects_have_soft_continuous_bloom(renderer):
         alpha=effect.getchannel('A')
         hist=alpha.histogram()
         assert sum(hist[1:180])>1500
+        # 实机式微弱背光，不能回退为高不透明度的上下灯团。
+        assert alpha.getextrema()[1] < 100
         # 泛光来自分级透明度，不使用白色星形亮芯。
         assert sum(1 for r,g,b,a in effect.getdata() if min(r,g,b)>210 and a>220)==0
         energies.append(ImageStat.Stat(alpha).sum[0])
     assert energies[1]>energies[0]
+
+
+def test_edge_sparkles_respect_rarity_and_front_card_occlusion(renderer, registry):
+    from PIL import Image
+    from src.render.renderer import CardGeometry
+    results = _mixed(registry)
+    high = next(result for result in results if result.rarity >= 4)
+    low = next(result for result in results if result.rarity < 4)
+    geo = foundation_geometry(4, 5)
+    canvas = Image.new('RGBA', (DESIGN_W, DESIGN_H))
+    renderer._edge_sparkles(canvas, [geo], [low], 1)
+    assert canvas.getbbox() is None
+    renderer._edge_sparkles(canvas, [geo], [high], 1)
+    assert canvas.getbbox() is not None
+    # 前方低星卡完整挡住后方高星卡时，不能把后方星芒补画到前方卡面。
+    front = CardGeometry(((0,0),(DESIGN_W,0),(DESIGN_W,DESIGN_H),(0,DESIGN_H)),
+                         DESIGN_W, DESIGN_H)
+    blocked = Image.new('RGBA', canvas.size)
+    renderer._edge_sparkles(blocked, [geo, front], [high, low], 1)
+    assert blocked.getbbox() is None
 
 
 def test_external_glow_never_overlays_card_faces(registry,renderer,monkeypatch):

@@ -30,8 +30,8 @@ DESIGN_W, DESIGN_H = 1920, 873
 
 # 卡内边缘光与卡外背光共用光源；角色身份只改变碎光位置，不改变亮度和光束尺寸。
 CARD_LIGHTING = {
-    4: {"tint": (255, 205, 66), "halo_alpha": 190, "reach": 88, "haze_alpha": 185},
-    5: {"tint": (190, 110, 255), "halo_alpha": 240, "reach": 135, "haze_alpha": 225},
+    4: {"tint": (255, 211, 112), "reach": 36, "haze_alpha": 44},
+    5: {"tint": (182, 116, 237), "reach": 54, "haze_alpha": 62},
 }
 
 # ---------------------------------------------------------------------------
@@ -535,10 +535,11 @@ class Renderer:
         if bounds:
             art = art.crop(bounds)
         fx, fy = placement["face"]
-        factor = geometry.width * .95 / (art.width * placement["face_width"])
+        factor = geometry.width * placement.get("card_face_width", .88) / (art.width * placement["face_width"])
+        factor = max(factor, geometry.height * 1.35 / art.height)
         factor = min(factor, geometry.height * 3.7 / art.height)
         tl, tr, br, bl = geometry.quad
-        target_y = .42
+        target_y = placement.get("target_y", .36)
         lane_x = (tl[0] + tr[0]) / 2 + (bl[0] - tl[0]) * target_y
         x = lane_x - round(art.width*factor)*fx
         y = tl[1]+geometry.height*target_y-round(art.height*factor)*fy
@@ -546,6 +547,9 @@ class Renderer:
 
     def _character_art(self, pair, geometry, scale, item=None):
         """前景按逐角色脸部锚点定位，避免举手、武器与披风挤走人物。"""
+        native = self._native_character_art(item, geometry, scale) if item else None
+        if native is not None:
+            return native
         canvas, offset = self._card_canvas(geometry, scale)
         tl, tr, br, bl = geometry.quad
         placement = self._placement(item) if item else None
@@ -557,13 +561,16 @@ class Renderer:
                 back = back.crop(bounds)
             bp = placement.get("background", {"face": [.5,.2], "face_width": .22})
             bx, by = bp["face"]
-            factor = min(geometry.width * 1.22 / (back.width * bp["face_width"]), geometry.height * 4.5 / back.height)
+            factor = geometry.width * bp.get("card_face_width", 1.15) / (back.width * bp["face_width"])
+            # 面具承担整张卡面的后景，而非只露出顶端一颗头。
+            factor = max(factor, geometry.height * 1.55 / back.height,
+                         geometry.width * 1.5 / back.width)
+            factor = min(factor, geometry.height * 4.5 / back.height)
             target_y = bp.get("target_y", .13)
             lane_x = (tl[0]+tr[0])/2+(bl[0]-tl[0])*target_y
             x = lane_x-round(back.width*factor)*bx
             y = tl[1]+geometry.height*target_y-round(back.height*factor)*by
             back, (x,y) = self._visible_resize(back,factor,x,y,geometry)
-            back = ImageEnhance.Brightness(back).enhance(1.16)
             canvas.alpha_composite(back,(x-offset[0],y-offset[1]))
         if "jandc" in pair[0].stem.casefold():
             self._twins_foreground(canvas, offset, pair[0], geometry)
@@ -572,17 +579,46 @@ class Renderer:
         art, (x,y) = self._anchored_foreground(art, placement, geometry)
         front = Image.new("RGBA",canvas.size)
         front.alpha_composite(art,(x-offset[0],y-offset[1]))
-        # 上方保留专属人格面具的面部；前景从头发上沿渐入，避免举手武器盖住后景。
+        # 人物保留透明轮廓，用斜向切口露出上方人格面具，避免横向淡入切断头发。
         alpha = front.getchannel("A")
         gate = Image.new("L",canvas.size,255)
         draw = ImageDraw.Draw(gate)
-        cutoff = round(tl[1]+geometry.height*.255-offset[1])
-        draw.rectangle((0,0,canvas.width,max(0,cutoff)),fill=0)
-        fade = max(1,round(geometry.height*.025))
-        for row in range(fade):
-            draw.line((0,cutoff+row,canvas.width,cutoff+row),fill=round(255*row/fade))
+        cutoff = tl[1]+geometry.height*.18-offset[1]
+        draw.polygon([(0,0),(canvas.width,0),
+                      (canvas.width,round(cutoff-geometry.height*.035)),
+                      (0,round(cutoff+geometry.height*.035))],fill=0)
         front.putalpha(ImageChops.multiply(alpha,gate))
         canvas.alpha_composite(front)
+        return canvas, offset
+
+    def _native_character_art(self, item, geometry, scale):
+        """将游戏窄卡的原始斜槽投影至结果槽，保留人物/面具各自的裁切与留白。"""
+        root = self.assets / "character_layers" / "cards"
+        if not hasattr(self, "_native_character_mapping"):
+            path = root / "mapping.json"
+            self._native_character_mapping = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+        entry = self._native_character_mapping.get(item.id)
+        if not entry:
+            return None
+        if not all((root / entry[key]).is_file() for key in ("front", "back")):
+            return None
+        canvas, offset = self._card_canvas(geometry, scale)
+        tl, tr, br, bl = geometry.quad
+        # 原图 396×980，实际色带宽 200，上沿左端 x=196，下沿左端 x=0。
+        # 先解开原素材的斜度，再匹配目标槽；不能把整个透明画布当成色带宽度。
+        a = d = max(geometry.height / 980, geometry.width / 200)
+        # 单抽槽更宽时等比放大覆盖，保留顶端面具脸部，多余下身按卡底裁切。
+        origin_y = tl[1]
+        slope = (bl[0]-tl[0])/geometry.height
+        b = 196*a/980+slope*d
+        tx = (tl[0]+tr[0])/2+slope*(origin_y-tl[1])-296*a-offset[0]
+        ty = origin_y-offset[1]
+        inverse = (1/a, -b/(a*d), (b*ty/d-tx)/a, 0, 1/d, -ty/d)
+        for key in ("back", "front"):
+            art = self._source_art(root / entry[key])
+            layer = art.transform(canvas.size, Image.Transform.AFFINE, inverse,
+                                  resample=Image.Resampling.BICUBIC)
+            canvas.alpha_composite(layer)
         return canvas, offset
 
     @staticmethod
@@ -611,11 +647,7 @@ class Renderer:
 
     def art_layer(self, result: PullResult, geometry: CardGeometry, scale: float, slot: int = 0
                   ) -> tuple[Image.Image, tuple[int, int]] | None:
-        """生成**不受色带裁切**的立绘图层（返回图层与左上角坐标）。
-
-        参考截图里立绘是主体、色带只是衬在后面的布料：人物顶到卡顶甚至越出色带，
-        左右也可以探出到相邻卡片上。所以立绘必须是独立的前层，不能塞进多边形里裁。
-        """
+        """生成立绘与定位；最终由单抽/十连合成器按自身卡面轮廓裁切。"""
         pair = self._character_pair(result.item)
         if pair:
             return self._character_art(pair, geometry, scale, result.item)
@@ -992,7 +1024,7 @@ class Renderer:
         return segments + ((1, .32+phase*.08, .46+phase*.08),) if rarity >= 5 else segments
 
     def _five_flare(self, canvas, geometry, scale, rarity=5, item_id="", slot=0):
-        """泛光仅存在于卡片顶边以上和底边以下，不产生左右侧光晕。"""
+        """低亮度、细长的顶底背光；亮芯由前景品质框和离散星芒承担。"""
         if rarity < 4:
             return
         lighting=CARD_LIGHTING[5 if rarity>=5 else 4]
@@ -1004,8 +1036,8 @@ class Renderer:
                          (geometry.quad[3],geometry.quad[2],1)):
             cx=(a[0]+b[0])*.5*scale
             y=a[1]*scale
-            half=geometry.width*scale*.43
-            pad=round(75*scale)
+            half=geometry.width*scale*.58
+            pad=max(1,round(45*scale))
             x0=max(0,int(cx-half)-pad)
             x1=min(canvas.width,int(cx+half)+pad+1)
             y0=max(0,int(min(y,y+sign*reach))-pad)
@@ -1014,11 +1046,14 @@ class Renderer:
                 continue
             source=Image.new("RGBA",(x1-x0,y1-y0))
             draw=ImageDraw.Draw(source)
-            draw.polygon([(cx-half-x0,y-y0),(cx+half-x0,y-y0),
-                          (cx+half*.32-x0,y+sign*reach-y0),
-                          (cx-half*.32-x0,y+sign*reach-y0)],
-                         fill=(*color,lighting["haze_alpha"]))
-            for radius in (26,10):
+            # 从边缘向外快速衰减，避免不透明梯形经模糊后形成一团灯泡。
+            for row in range(max(1,round(reach))):
+                t=row/max(1,reach)
+                span=half*(1-.45*t)
+                yy=round(y+sign*row-y0)
+                draw.line((cx-span-x0,yy,cx+span-x0,yy),
+                          fill=(*color,round(lighting["haze_alpha"]*(1-t)**2)))
+            for radius in (15,5):
                 glow=source.filter(ImageFilter.GaussianBlur(radius*scale))
                 alpha=glow.getchannel("A")
                 # 严格清除顶底之间整条水平带，模糊也不能泄漏到左右侧。
@@ -1026,6 +1061,46 @@ class Renderer:
                                                  glow.width,min(glow.height,int(bottom)-y0)),fill=0)
                 glow.putalpha(alpha)
                 canvas.alpha_composite(glow,(x0,y0))
+
+    def _edge_sparkles(self, canvas, geometries, results, scale):
+        """实机式小面积四角星与细光丝，依照前后遮挡关系落在可见品质边上。"""
+        for index, (geo, result) in enumerate(zip(geometries, results)):
+            if result.rarity < 4:
+                continue
+            phase = self._effect_phase(result.item.id, index)
+            tl, tr, br, bl = [(x*scale,y*scale) for x,y in geo.quad]
+            color = CARD_LIGHTING[5 if result.rarity >= 5 else 4]["tint"]
+            layer = Image.new("RGBA", canvas.size)
+            draw = ImageDraw.Draw(layer)
+            # 五星有两处星芒，四星只在底角保留一个更小的闪点。
+            positions = (.12+phase*.18, .48+phase*.18, .78+phase*.16) if result.rarity >= 5 else (.70+phase*.18,)
+            for n, t in enumerate(positions):
+                x, y = tl[0]+(bl[0]-tl[0])*t, tl[1]+(bl[1]-tl[1])*t
+                radius = (27 if result.rarity >= 5 else 13)*scale
+                if n:
+                    radius *= .8
+                # 极薄的斜向光丝，星芒中心限制在卡边，不铺白到人物身上。
+                dx, dy = (bl[0]-tl[0])*.033, (bl[1]-tl[1])*.033
+                draw.line((x-dx*1.5,y-dy*1.5,x+dx*1.5,y+dy*1.5),
+                          fill=(*color,210),width=max(1,round(2*scale)))
+                draw.line((x-radius*.18,y-radius*1.45,x+radius*.18,y+radius*1.45),
+                          fill=(255,255,255,185),width=max(1,round(scale)))
+                draw.polygon([(x,y-radius),(x+radius*.14,y-radius*.14),
+                              (x+radius*.7,y),(x+radius*.14,y+radius*.14),
+                              (x,y+radius),(x-radius*.14,y+radius*.14),
+                              (x-radius*.7,y),(x-radius*.14,y-radius*.14)],
+                             fill=(255,255,255,255))
+                draw.ellipse((x-2*scale,y-2*scale,x+2*scale,y+2*scale), fill=(255,255,255,255))
+            halo = layer.filter(ImageFilter.GaussianBlur(max(.5,4*scale)))
+            halo.putalpha(halo.getchannel("A").point(lambda a: round(a*.62)))
+            layer = Image.alpha_composite(halo, layer)
+            # 后面的卡片不能把闪光画到前方卡片上。
+            visible = Image.new("L",canvas.size,255)
+            vd = ImageDraw.Draw(visible)
+            for front in geometries[index+1:]:
+                vd.polygon([(round(x*scale),round(y*scale)) for x,y in front.quad],fill=0)
+            layer.putalpha(ImageChops.multiply(layer.getchannel("A"),visible))
+            canvas.alpha_composite(layer)
 
     def _high_star_backlight(self, canvas, geometries, results, scale):
         """只在卡片顶端与底端背后绘制泛光。"""
@@ -1474,6 +1549,7 @@ class Renderer:
         for geo, result in zip(geometry, arranged):
             if result.item.kind in ("character", "char"):
                 self._character_frame(canvas, geo, result.rarity, scale)
+        self._edge_sparkles(canvas, geometry, arranged, scale)
         self._blue_cutlines(canvas)
         self._user_panel(canvas, user_name, footer, avatar)
         if batch_label:
@@ -1536,7 +1612,7 @@ class Renderer:
             width=width, height=height,
         )
         self._high_star_backlight(canvas, [shifted], [result], 1)
-        # 单抽同样走「色带 + 独立立绘前层」，保证立绘顶到卡顶而不是被裁进色带。
+        # 单抽与十连共用立绘构图，最终按各自卡槽的斜边裁切。
         card, (ox, oy) = self._foundation_card(shifted, scale, 0, result.rarity, result.item.element, result.item.kind)
         canvas.alpha_composite(card, (int(ox), int(oy)))
         layer = self.art_layer(result, shifted, scale)
@@ -1552,6 +1628,7 @@ class Renderer:
         self._draw_separators(canvas, [shifted], 1, [result.rarity])
         if result.item.kind in ("character", "char"):
             self._character_frame(canvas, shifted, result.rarity)
+        self._edge_sparkles(canvas, [shifted], [result], 1)
         self._blue_cutlines(canvas)
         self._user_panel(canvas, user_name, footer, avatar)
         return canvas.convert("RGB")

@@ -536,7 +536,7 @@ class Renderer:
             art = art.crop(bounds)
         fx, fy = placement["face"]
         factor = geometry.width * placement.get("card_face_width", .88) / (art.width * placement["face_width"])
-        factor = max(factor, geometry.height * 1.35 / art.height)
+        factor = max(factor, geometry.height * placement.get("min_height", 1.35) / art.height)
         factor = min(factor, geometry.height * 3.7 / art.height)
         tl, tr, br, bl = geometry.quad
         target_y = placement.get("target_y", .36)
@@ -563,8 +563,8 @@ class Renderer:
             bx, by = bp["face"]
             factor = geometry.width * bp.get("card_face_width", 1.15) / (back.width * bp["face_width"])
             # 面具承担整张卡面的后景，而非只露出顶端一颗头。
-            factor = max(factor, geometry.height * 1.55 / back.height,
-                         geometry.width * 1.5 / back.width)
+            factor = max(factor, geometry.height * bp.get("min_height", 1.55) / back.height,
+                         geometry.width * bp.get("min_width", 1.5) / back.width)
             factor = min(factor, geometry.height * 4.5 / back.height)
             target_y = bp.get("target_y", .13)
             lane_x = (tl[0]+tr[0])/2+(bl[0]-tl[0])*target_y
@@ -1365,13 +1365,10 @@ class Renderer:
             draw.line((bx, 16 * scale, bx, 28 * scale), fill=(40, 40, 40, 255), width=max(2, int(3 * scale)))
 
     def _new_sticker(self, canvas: Image.Image, x: float, y: float, scale: float) -> None:
-        layer = Image.new("RGBA", (int(160 * scale), int(80 * scale)), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(layer)
-        font = self.font(int(40 * scale), latin=True)
-        draw.text((14 * scale, 30 * scale), "NEW", font=font, fill=(255, 214, 34, 255), anchor="lm",
-                  stroke_width=max(2, int(4 * scale)), stroke_fill=(0, 0, 0, 255))
-        layer = layer.rotate(-14, resample=Image.Resampling.BICUBIC, expand=True)
-        canvas.alpha_composite(layer, (int(x), int(y) - layer.height // 2))
+        layer = self._source_art(self.assets / "gacha_native" / "new-badge.png")
+        layer = layer.resize((max(1, round(76 * scale)), max(1, round(76 * scale * layer.height / layer.width))),
+                             Image.Resampling.LANCZOS)
+        canvas.alpha_composite(layer, (round(x - layer.width * .52), max(0, round(y - layer.height * .32))))
 
     def _share_badge(self, canvas: Image.Image, scale: float) -> None:
         draw = ImageDraw.Draw(canvas)
@@ -1551,6 +1548,11 @@ class Renderer:
                 self._character_frame(canvas, geo, result.rarity, scale)
         self._edge_sparkles(canvas, geometry, arranged, scale)
         self._blue_cutlines(canvas)
+        if show_new:
+            for geo, result in zip(geometry, arranged):
+                if result.is_new:
+                    left, top = geo.quad[0]
+                    self._new_sticker(canvas, left * scale, top * scale, scale)
         self._user_panel(canvas, user_name, footer, avatar)
         if batch_label:
             draw = ImageDraw.Draw(canvas)
@@ -1630,6 +1632,8 @@ class Renderer:
             self._character_frame(canvas, shifted, result.rarity)
         self._edge_sparkles(canvas, [shifted], [result], 1)
         self._blue_cutlines(canvas)
+        if result.is_new:
+            self._new_sticker(canvas, shifted.quad[0][0], shifted.quad[0][1], 1)
         self._user_panel(canvas, user_name, footer, avatar)
         return canvas.convert("RGB")
 

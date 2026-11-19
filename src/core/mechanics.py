@@ -32,6 +32,7 @@ class PullResult:
     index: int
     pity5_after: int
     pity4_after: int
+    is_new: bool = False
 
     @property
     def stars(self) -> str:

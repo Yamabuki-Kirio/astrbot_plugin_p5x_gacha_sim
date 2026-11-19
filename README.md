@@ -9,6 +9,7 @@
 ## 功能
 
 - **图片抽卡**：角色与专属人格面具分层展示，结果页显示头像、昵称、保底进度和累计抽数。
+- **首次获得提示**：账号首次抽到尚未收藏的角色时，卡面左上角显示游戏风格的 `NEW` 标识；同一批重复角色只标记第一张。
 - **限定卡池**：可抽全限定角色／武器池，也可指定角色或专武 UP，支持角色名、代号和部分别名。
 - **每日额度**：默认每天 10 抽，签到再领 10 抽，北京时间零点重置。
 - **队伍收藏**：记录四五星角色和武器，展示意识／进化；角色与已拥有的专武相邻排列。
@@ -25,6 +26,10 @@
 `/十连`：角色与专属人格面具分层展示，底部显示昵称、今日可抽次数、保底进度和累计抽数。本例头像使用昵称占位。
 
 ![十连结果演示：角色与人格面具、每日额度和保底进度](docs/images/gacha-ten.jpg)
+
+v0.3.9 新增五星 SP 角色 **平野亚兰·凛华（ANRI·Radiance）**，当期限定角色池以她作为五星 UP。人物与「千镜的余冕」采用独立高清素材并按游戏窄卡构图裁切，上方展示人格面具、人物从中段向下覆盖卡面。
+
+![平野亚兰凛华十连效果：人格面具与人物分层窄卡、NEW 标识](docs/images/anri-rinka-gacha.jpg)
 
 <details>
 <summary>查看卡池目录演示（点击展开）</summary>
@@ -379,7 +384,7 @@ p5x 保底
 
 ## 维护与开发
 
-- [更新记录：v0.3.6](UPDATE-v0.3.6.md) · [v0.3.5](UPDATE-v0.3.5.md) · [v0.3.4](UPDATE-v0.3.4.md) · [v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
+- [更新记录：v0.3.9](UPDATE-v0.3.9.md) · [v0.3.6](UPDATE-v0.3.6.md) · [v0.3.5](UPDATE-v0.3.5.md) · [v0.3.4](UPDATE-v0.3.4.md) · [v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
 - [素材说明](assets/README.md) · [图层说明](assets/character_layers/README.md) · [数据与素材准备清单](docs/准备清单.md)
 - 卡池配置：`data/banners.json`；角色／武器条目：`data/items/`。
 - 角色定位：`assets/character_layers/placement.json`；低星人格面具定位：`assets/persona_placement.json`。

@@ -610,5 +610,14 @@
       "https://lufel.net/assets/img/character-detail/%EC%9D%B4%EC%B9%98%EA%B3%A0%C2%B7%EC%97%AC%EB%A6%84.webp",
       "https://lufel.net/assets/img/character-detail/%EC%9D%B4%EC%B9%98%EA%B3%A0%C2%B7%EC%97%AC%EB%A6%84%20-%20%ED%85%94%ED%81%AC%EC%8B%9C%EC%97%90%ED%8E%98%EC%9D%B4%EC%95%84.webp"
     ]
+  },
+  "char:ANRI·Radiance": {
+    "front": "lihui-guaidao-anri-rinka.png",
+    "back": "Texture-update-anri-rinka-persona.png",
+    "name": "平野亚兰·凛华",
+    "source": [
+      "clipboard-character",
+      "clipboard-persona"
+    ]
   }
 }

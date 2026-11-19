@@ -139,7 +139,7 @@ def test_hard_pity_rules_are_inherited(registry,pool,hard):
 def test_star_ryuji_removed_from_all_pools_and_can_be_restored(registry,tmp_path):
     import shutil,json
     excluded='char:SKULL·Starlight'
-    assert len(registry.limited_characters())==37
+    assert len(registry.limited_characters())==38
     assert registry.resolve(excluded) is None
     assert registry.resolve('target:'+excluded) is None
     for banner in registry.enabled_banners():
@@ -149,7 +149,7 @@ def test_star_ryuji_removed_from_all_pools_and_can_be_restored(registry,tmp_path
     shutil.copytree(source,tmp_path/'data')
     (tmp_path/'data/excluded_characters.json').write_text('[]',encoding='utf-8')
     restored=Registry.load(tmp_path/'data')
-    assert len(restored.limited_characters())==38
+    assert len(restored.limited_characters())==39
     assert restored.resolve('星舞龙司').id=='target:'+excluded
 
 

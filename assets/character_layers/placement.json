@@ -950,5 +950,26 @@
       ],
       "face_width": 0.2
     }
+  },
+  "char:ANRI·Radiance": {
+    "face": [
+      0.56,
+      0.13
+    ],
+    "face_width": 0.19,
+    "card_face_width": 0.58,
+    "min_height": 1.04,
+    "target_y": 0.39,
+    "background": {
+      "face": [
+        0.36,
+        0.13
+      ],
+      "face_width": 0.2,
+      "card_face_width": 0.72,
+      "min_height": 1.08,
+      "min_width": 1.0,
+      "target_y": 0.15
+    }
   }
 }

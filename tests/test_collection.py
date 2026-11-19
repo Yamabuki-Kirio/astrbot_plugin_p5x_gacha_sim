@@ -33,6 +33,7 @@ def test_first_seven_copies_and_only_excess_reward(env,prefix,rarity):
     s.mechanics=FixedResults([item]); banner=r.banner('char_all_limited')
     for n in range(7):
         result=s.draw('qq','u',banner,1)
+        assert result.results[0].is_new == (prefix == 'char:' and n == 0)
         owned=s.team_of('qq','u')
         assert len(owned)==1 and owned[0].copies==n+1 and owned[0].level==n
         assert owned[0].maxed==(n==6)
@@ -43,6 +44,17 @@ def test_first_seven_copies_and_only_excess_reward(env,prefix,rarity):
     result=s.draw('qq','u',banner,1)
     assert result.overflow_bonus==10 and result.remaining==21
     assert store.total_pulls('qq','u')==9 and store.count_history('qq','u')==9
+
+
+def test_new_character_is_per_user_and_only_once_per_batch(env):
+    registry, _, service = env
+    item = next(item for item in registry.items.values() if item.id.startswith('char:') and collectible(item))
+    service.mechanics = FixedResults([item])
+    service.record_history = False
+    banner = registry.banner('char_all_limited')
+    for user_id in ('first', 'second'):
+        result = service.draw('qq', user_id, banner, 10)
+        assert [pull.is_new for pull in result.results] == [True] + [False] * 9
 
 @pytest.mark.parametrize('initial,expected',[(0,30),(6,90),(7,100)])
 def test_ten_pull_cap_crossing_and_refund_count(env,initial,expected):

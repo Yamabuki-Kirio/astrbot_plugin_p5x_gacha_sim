@@ -337,6 +337,16 @@ def test_no_up_badge(renderer, registry):
     assert reds < region.width * region.height * 0.02, "不应出现红色 UP 角标"
 
 
+def test_new_character_badge_changes_only_new_results(registry, renderer):
+    from dataclasses import replace
+    item = next(item for item in registry.items.values()
+                if item.id.startswith("char:") and item.rarity >= 4)
+    result = _r(item, 5)
+    plain = renderer.render_ten([result])
+    marked = renderer.render_ten([replace(result, is_new=True)])
+    assert plain.tobytes() != marked.tobytes()
+
+
 def test_high_rarity_is_centered_without_changing_geometry(registry, renderer):
     """星级会改变底色与辉光，但只能重新分配固定卡位，不能改变几何。"""
     results = _mixed(registry)

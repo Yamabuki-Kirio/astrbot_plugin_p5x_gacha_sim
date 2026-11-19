@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone, timedelta
 
 from ..core.mechanics import GachaMechanics, PullResult
@@ -92,6 +92,11 @@ class GachaService:
                 raise ValueError(f"今日剩余 {quota.remaining} 抽，本次需要 {count} 抽。{tip}")
             state = self.store.load_state(platform_id, user_id, banner.pity_group)
             results, new_state = self.mechanics.pull_many(banner, state, count)
+            seen = {row['item_id'] for row in self.store.owned_items(platform_id, user_id)}
+            for index, result in enumerate(results):
+                if collectible(result.item) and result.item.id.startswith('char:') and result.item.id not in seen:
+                    results[index] = replace(result, is_new=True)
+                    seen.add(result.item.id)
             self.store.save_state(platform_id, user_id, banner.pity_group, new_state)
             if self.record_history:
                 self.store.add_history(

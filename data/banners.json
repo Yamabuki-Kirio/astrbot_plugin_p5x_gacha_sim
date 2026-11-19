@@ -1,7 +1,7 @@
 [
   {
     "id": "char_limited",
-    "name": "限定角色契约·雨宫莲·星舞",
+    "name": "限定角色契约·平野亚兰·凛华",
     "kind": "character",
     "pity_group": "char",
     "cost": 150,
@@ -23,6 +23,7 @@
     "pool": {
       "5": [
         "char:JOKER·Starlight",
+        "char:ANRI·Radiance",
         "char:RIDDLE",
         "char:SKULL",
         "char:MONA",
@@ -124,7 +125,7 @@
     },
     "rate_up": {
       "5": [
-        "char:JOKER·Starlight"
+        "char:ANRI·Radiance"
       ],
       "4": [
         "char:LEON",

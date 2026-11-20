@@ -777,10 +777,11 @@
     "face_width": 0.17,
     "background": {
       "face": [
-        0.45,
-        0.2
+        0.665,
+        0.205
       ],
-      "face_width": 0.7
+      "face_width": 0.25,
+      "target_y": 0.145
     }
   },
   "char:JUNPEI": {

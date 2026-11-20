@@ -1,7 +1,8 @@
 """Team collection posters with adjacent owner/weapon groups and capped progress."""
 from collections import defaultdict
+import io
 import math
-from PIL import Image, ImageDraw, ImageOps, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 from .roster import _fit_text
 from .renderer import CardGeometry
 
@@ -187,6 +188,78 @@ def _place_anchored(art, canvas_size, art_area_h, face, face_width,
     return layer
 
 
+def _fit_weapon_art(art, size, art_area_h, rarity):
+    """Display weapons completely inside the slanted lane with subtle glow and shadow."""
+    art = art.convert('RGBA')
+    bounds = art.getchannel('A').point(lambda v: 255 if v > 16 else 0).getbbox()
+    if bounds:
+        art = art.crop(bounds)
+    max_w = max(1, round(CARD_BODY_W * 0.90))
+    max_h = max(1, round(art_area_h * 0.74))
+    resized = ImageOps.contain(art, (max_w, max_h), Image.Resampling.LANCZOS)
+    subject_y = art_area_h * 0.48
+    lane_x = _lane_center_x(subject_y)
+    cx, cy = round(lane_x), round(subject_y)
+    x = round(lane_x - resized.width / 2)
+    y = round(subject_y - resized.height / 2)
+
+    canvas = Image.new('RGBA', size, (0, 0, 0, 0))
+    glow = Image.new('RGBA', size, (0, 0, 0, 0))
+    glow_color = (146, 102, 255, 76) if rarity >= 5 else (238, 182, 64, 68)
+    rx = round(CARD_BODY_W * 0.52)
+    ry = round(art_area_h * 0.30)
+    ImageDraw.Draw(glow).ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=glow_color)
+    canvas.alpha_composite(glow.filter(ImageFilter.GaussianBlur(38)))
+
+    shadow_alpha = resized.getchannel('A').point(lambda a: round(a * 0.62))
+    shadow = Image.new('RGBA', resized.size, (0, 0, 0, 0))
+    shadow.putalpha(shadow_alpha)
+    shadow_layer = Image.new('RGBA', size, (0, 0, 0, 0))
+    shadow_layer.alpha_composite(shadow, (x + 8, y + 12))
+    canvas.alpha_composite(shadow_layer.filter(ImageFilter.GaussianBlur(10)))
+    canvas.alpha_composite(resized, (x, y))
+    return canvas
+
+
+def _weapon_frame(card, art_quad, rarity):
+    """Draw a sleek left+bottom rarity accent edge for 4★/5★ weapon cards."""
+    if rarity < 4:
+        return
+    tl, _tr, br, bl = art_quad
+    overlay = Image.new('RGBA', card.size, (0, 0, 0, 0))
+    od = ImageDraw.Draw(overlay)
+    # Inset slightly inside the 7px outer black border
+    inset_x = 6
+    inset_y = 4
+    p_top = (tl[0] + inset_x, tl[1] + inset_y)
+    p_bot = (bl[0] + inset_x, bl[1] - inset_y)
+    p_right = (br[0] - inset_x, br[1] - inset_y)
+    if rarity >= 5:
+        stops = ((110, 212, 255), (188, 122, 255), (255, 164, 240))
+    else:
+        stops = ((255, 236, 152), (242, 186, 68), (212, 140, 28))
+    steps = 36
+    for i in range(steps):
+        t0, t1 = i / steps, (i + 1) / steps
+        tm = (t0 + t1) * 0.5
+        if tm < 0.5:
+            k = tm * 2
+            c = tuple(round(stops[0][j] * (1 - k) + stops[1][j] * k) for j in range(3))
+        else:
+            k = (tm - 0.5) * 2
+            c = tuple(round(stops[1][j] * (1 - k) + stops[2][j] * k) for j in range(3))
+        x0 = p_top[0] + (p_bot[0] - p_top[0]) * t0
+        y0 = p_top[1] + (p_bot[1] - p_top[1]) * t0
+        x1 = p_top[0] + (p_bot[0] - p_top[0]) * t1
+        y1 = p_top[1] + (p_bot[1] - p_top[1]) * t1
+        od.line([(x0, y0), (x1, y1)], fill=(*c, 245), width=6)
+    od.line([p_bot, p_right], fill=(*stops[2], 235), width=5)
+    glow = overlay.filter(ImageFilter.GaussianBlur(4))
+    glow.putalpha(glow.getchannel('A').point(lambda a: round(a * 0.55)))
+    card.alpha_composite(glow)
+    card.alpha_composite(overlay)
+
+
 def _cover_art(renderer, item, size):
     art_area_h = CARD_H - 104
     if item.id.startswith('char:'):
@@ -220,6 +293,8 @@ def _cover_art(renderer, item, size):
                 )
     else:
         art = renderer.portrait(item)
+        if art:
+            return _fit_weapon_art(art, size, art_area_h, item.rarity)
     if not art:
         return None
     return _fit_layer(art, size, (.5, .20), 1.05)
@@ -233,13 +308,19 @@ def _team_card(renderer, entry, registry):
     card = Image.new('RGBA', (card_w, CARD_H), (0, 0, 0, 0))
 
     art_area_h = CARD_H - 104
+    is_char = entry.item.id.startswith('char:')
+    if is_char:
+        top_rgb, bot_rgb = (39, 43, 61), (19, 21, 31)
+    elif entry.item.rarity >= 5:
+        top_rgb, bot_rgb = (44, 34, 78), (15, 13, 30)
+    else:
+        top_rgb, bot_rgb = (54, 44, 28), (20, 17, 14)
+
     background = Image.new('RGBA', card.size, (20, 20, 26, 255))
     bd = ImageDraw.Draw(background)
     for y in range(art_area_h):
         t = y / max(1, art_area_h - 1)
-        color = tuple(round(39 + (19 - 39) * t) if channel == 0 else
-                      round(43 + (21 - 43) * t) if channel == 1 else
-                      round(61 + (31 - 61) * t) for channel in range(3))
+        color = tuple(round(top_rgb[ch] + (bot_rgb[ch] - top_rgb[ch]) * t) for ch in range(3))
         bd.line((0, y, card_w, y), fill=(*color, 255))
     art = _cover_art(renderer, entry.item, (card_w, CARD_H))
     if art:
@@ -251,47 +332,109 @@ def _team_card(renderer, entry, registry):
     od = ImageDraw.Draw(overlay)
     od.polygon([(25, footer_y), (CARD_BODY_W + 25, footer_y), (CARD_BODY_W, CARD_H), (0, CARD_H)],
                fill=(5, 5, 7, 255))
-    od.line([(25, footer_y), (CARD_BODY_W + 25, footer_y)], fill='white', width=4)
+    divider_color = ((224, 184, 255) if entry.item.rarity >= 5 else (255, 224, 128)) if entry.maxed else 'white'
+    od.line([(25, footer_y), (CARD_BODY_W + 25, footer_y)], fill=divider_color, width=4)
     card.alpha_composite(overlay)
 
     owner = _owner_character(entry.item, registry)
     icon_x = 24
     for icon in _element_icons(renderer, owner, size=50):
-        card.alpha_composite(icon, (icon_x, footer_y + 8 + (50 - icon.height) // 2))
+        card.alpha_composite(icon, (icon_x, footer_y + 9 + (50 - icon.height) // 2))
         icon_x += icon.width + 4
-    progress = _progress_icon(renderer, entry, size=62)
-    card.alpha_composite(progress, (CARD_BODY_W - 66, footer_y + 3))
+    progress = _progress_icon(renderer, entry, size=60)
+    card.alpha_composite(progress, (CARD_BODY_W - 65, footer_y + 4))
 
     draw = ImageDraw.Draw(card)
     level = 100 if entry.maxed else 80
+    level_color = (255, 224, 120) if entry.maxed else 'white'
     draw.text((16, CARD_H - 13), entry.item.name,
-              font=_fit_text(renderer, draw, entry.item.name, CARD_BODY_W - 105, 22), anchor='lb', fill='white')
+              font=_fit_text(renderer, draw, entry.item.name, CARD_BODY_W - 108, 22), anchor='lb', fill='white')
     draw.text((CARD_BODY_W - 8, CARD_H - 12), f'Lv{level}', font=renderer.font(24, latin=True),
-              anchor='rb', fill='white')
+              anchor='rb', fill=level_color)
     draw.line(list(quad) + [quad[0]], fill=(5, 5, 7, 255), width=7)
-    if entry.item.id.startswith('char:') and entry.item.rarity in (4, 5):
-        art_quad = (quad[0], quad[1], (CARD_BODY_W + 25, footer_y), (25, footer_y))
+    art_quad = (quad[0], quad[1], (CARD_BODY_W + 25, footer_y), (25, footer_y))
+    if is_char and entry.item.rarity in (4, 5):
         renderer._character_frame(card, CardGeometry(art_quad, CARD_BODY_W, footer_y), entry.item.rarity)
+    elif not is_char and entry.item.rarity in (4, 5):
+        _weapon_frame(card, art_quad, entry.item.rarity)
     return card
 
 
-def _render_row(renderer, row, registry):
-    viewport = _star_background((VIEW_W, VIEW_H))
-    stage = Image.new('RGBA', (STAGE_W, STAGE_H), (0, 0, 0, 0))
-    sd = ImageDraw.Draw(stage)
-    shadow = Image.new('RGBA', stage.size, (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).polygon([(0, 4), (STAGE_W, 4), (STAGE_W - 30, STAGE_H), (0, STAGE_H)],
-                                   fill=(0, 0, 0, 210))
-    stage.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(22)), (0, 14))
-    sd.polygon([(0, 4), (STAGE_W, 4), (STAGE_W - 30, STAGE_H), (0, STAGE_H)], fill=(10, 38, 184, 255))
+def _team_background(renderer, size, flip=False):
+    """Use the rich P5X monochrome mask/star/halftone background (matching gacha & in-game team UI)."""
+    cache = getattr(renderer, '_team_bg_cache', None)
+    if cache is None:
+        cache = renderer._team_bg_cache = {}
+    key = (size, bool(flip))
+    if key in cache:
+        return cache[key].copy()
+    path = renderer._runtime_asset(renderer.assets / 'p5x-gacha-background-v1.png')
+    if path.is_file():
+        with Image.open(path) as source:
+            source = source.convert('RGB')
+            red, green, blue = source.split()
+            # Strip the baked blue cutlines so only the pure dark monochrome P5X pattern remains.
+            blue_mask = ImageChops.subtract(blue, ImageChops.lighter(red, green)).point(
+                lambda v: 255 if v > 42 else 0)
+            # Slightly expand the mask by 1px to avoid any residual blue fringe
+            blue_mask = blue_mask.filter(ImageFilter.MaxFilter(3))
+            source.paste((8, 9, 13), (0, 0, source.width, source.height), blue_mask)
+            if flip:
+                source = ImageOps.mirror(source)
+            canvas = ImageOps.fit(source, size, Image.Resampling.LANCZOS, centering=(0.5, 0.5))
+            # Lift contrast gently so the dark star/mask texture reads crisply like the in-game team backdrop
+            canvas = ImageEnhance.Contrast(canvas).enhance(1.18)
+            canvas = ImageEnhance.Brightness(canvas).enhance(1.06).convert('RGBA')
+    else:
+        canvas = _star_background(size)
+    cache[key] = canvas
+    return canvas.copy()
 
+
+def _render_row(renderer, row, registry, row_index=0):
+    viewport = _team_background(renderer, (VIEW_W, VIEW_H), flip=(row_index % 2 == 1))
+    bezel = 20
+    stage_h = CARD_H + bezel * 2
+    stage = Image.new('RGBA', (STAGE_W, stage_h), (0, 0, 0, 0))
+    outer_quad = [(0, 0), (STAGE_W, 0), (STAGE_W - 28, stage_h), (0, stage_h)]
+    inner_quad = [(0, bezel), (STAGE_W, bezel), (STAGE_W - 28, stage_h - bezel), (0, stage_h - bezel)]
+
+    shadow = Image.new('RGBA', stage.size, (0, 0, 0, 0))
+    ImageDraw.Draw(shadow).polygon(outer_quad, fill=(0, 0, 0, 220))
+    stage.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(24)), (0, 12))
+
+    # Bold jet-black P5X outer bezel + clean, solid Velvet royal blue band (matching official in-game team UI)
+    sd = ImageDraw.Draw(stage)
+    sd.polygon(outer_quad, fill=(5, 5, 8, 255))
+    sd.polygon(inner_quad, fill=(10, 38, 184, 255))
+
+    # On partial rows, add a smooth dark-blue shadow vignette across the unoccupied right side (no stripes)
     start_x = 100
-    card_y = 17
+    card_y = bezel
     step = CARD_BODY_W + CARD_GAP
+    if 0 < len(row) < COLUMNS:
+        fade_start = start_x + len(row) * step - CARD_SKEW // 2 + 40
+        fade = Image.new('RGBA', stage.size, (0, 0, 0, 0))
+        fd = ImageDraw.Draw(fade)
+        span = max(1, STAGE_W - fade_start)
+        for x in range(max(0, int(fade_start)), STAGE_W, 4):
+            t = min(1.0, max(0.0, (x - fade_start) / span))
+            alpha = round(145 * (t ** 1.15))
+            fd.rectangle((x, bezel, x + 4, stage_h - bezel), fill=(3, 8, 34, alpha))
+        fade_mask = Image.new('L', stage.size, 0)
+        ImageDraw.Draw(fade_mask).polygon(inner_quad, fill=255)
+        stage.alpha_composite(Image.composite(fade, Image.new('RGBA', stage.size), fade_mask))
+
     for index, entry in enumerate(row):
         card = _team_card(renderer, entry, registry)
         layout_x = start_x + index * step
         stage.alpha_composite(card, (layout_x - CARD_SKEW // 2, card_y))
+
+    # Crisp pure-black top & bottom bezel edges over card seams, matching the real game's thick black frame
+    sd = ImageDraw.Draw(stage)
+    sd.polygon([(0, 0), (STAGE_W, 0), (STAGE_W, bezel), (0, bezel)], fill=(5, 5, 8, 255))
+    sd.polygon([(0, stage_h - bezel), (STAGE_W, stage_h - bezel), (STAGE_W - 28, stage_h), (0, stage_h)],
+               fill=(5, 5, 8, 255))
 
     tilted = stage.rotate(4.2, resample=Image.Resampling.BICUBIC, expand=True)
     viewport.alpha_composite(tilted, ((VIEW_W - tilted.width) // 2, (VIEW_H - tilted.height) // 2))
@@ -300,9 +443,10 @@ def _render_row(renderer, row, registry):
 
 def render_team(renderer, rows, registry, user_name, page, pages, character_count, weapon_count,
                 remaining, avatar=None):
-    images = [_render_row(renderer, row, registry) for row in rows] if rows else [_star_background((VIEW_W, VIEW_H))]
+    images = ([_render_row(renderer, row, registry, idx) for idx, row in enumerate(rows)]
+              if rows else [_team_background(renderer, (VIEW_W, VIEW_H))])
     height = HEADER_H + VIEW_H * len(images) + FOOTER_H
-    stitched = _star_background((VIEW_W, height)).convert('RGB')
+    stitched = _team_background(renderer, (VIEW_W, height)).convert('RGB')
     for index, image in enumerate(images):
         stitched.paste(image.convert('RGB'), (0, HEADER_H + index * VIEW_H))
 
@@ -313,10 +457,26 @@ def render_team(renderer, rows, registry, user_name, page, pages, character_coun
     draw.text((46, 48), '我的队伍 · 收藏名册', font=renderer.font(44), fill='white')
     draw.text((48, 104), f'角色 {character_count} 位  /  武器 {weapon_count} 件  ·  今日可抽 {remaining} 抽',
               font=renderer.font(23), fill=(200, 210, 245))
-    draw.text((VIEW_W - 48, 22), f'{page:02d} / {pages:02d}', font=renderer.font(24, latin=True),
+
+    right_text_x = VIEW_W - 48
+    if avatar:
+        try:
+            with Image.open(io.BytesIO(avatar)) as src:
+                face = ImageOps.fit(src.convert('RGBA'), (74, 74), Image.Resampling.LANCZOS)
+            av_mask = Image.new('L', (74, 74), 0)
+            ImageDraw.Draw(av_mask).polygon([(11, 0), (74, 0), (63, 74), (0, 74)], fill=255)
+            ax, ay = VIEW_W - 122, 26
+            draw.polygon([(ax + 11 - 3, ay - 3), (ax + 74 + 3, ay - 3),
+                          (ax + 63 + 3, ay + 74 + 3), (ax - 3, ay + 74 + 3)], fill=(42, 86, 255))
+            stitched.paste(face.convert('RGB'), (ax, ay), av_mask)
+            right_text_x = VIEW_W - 140
+        except Exception:
+            pass
+
+    draw.text((right_text_x, 22), f'{page:02d} / {pages:02d}', font=renderer.font(24, latin=True),
               anchor='ra', fill='white')
     name = ' '.join((user_name or '玩家').split())[:30]
-    draw.text((VIEW_W - 48, 68), name, font=_fit_text(renderer, draw, name, 520, 26), anchor='ra', fill='white')
+    draw.text((right_text_x, 68), name, font=_fit_text(renderer, draw, name, 480, 26), anchor='ra', fill='white')
 
     if not rows:
         center_y = HEADER_H + VIEW_H // 2

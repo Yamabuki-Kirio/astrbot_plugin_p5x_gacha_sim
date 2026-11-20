@@ -579,15 +579,7 @@ class Renderer:
         art, (x,y) = self._anchored_foreground(art, placement, geometry)
         front = Image.new("RGBA",canvas.size)
         front.alpha_composite(art,(x-offset[0],y-offset[1]))
-        # 人物保留透明轮廓，用斜向切口露出上方人格面具，避免横向淡入切断头发。
-        alpha = front.getchannel("A")
-        gate = Image.new("L",canvas.size,255)
-        draw = ImageDraw.Draw(gate)
-        cutoff = tl[1]+geometry.height*.18-offset[1]
-        draw.polygon([(0,0),(canvas.width,0),
-                      (canvas.width,round(cutoff-geometry.height*.035)),
-                      (0,round(cutoff+geometry.height*.035))],fill=0)
-        front.putalpha(ImageChops.multiply(alpha,gate))
+        # 人物自带透明轮廓，直接叠在后景之上，避免硬切多边形削平头发顶部。
         canvas.alpha_composite(front)
         return canvas, offset
 
@@ -694,6 +686,24 @@ class Renderer:
             under.putalpha(outline.point(lambda a: round(a*.65)))
             under.alpha_composite(resized)
             return under,(round(x),round(y))
+        if result.item.kind == "weapon":
+            # 武器：按斜槽视觉居中放大并叠加柔和暗影，避免紧凑武器缩在底角显得上方空洞。
+            factor = min(width * 1.12 / art.width, height * 0.76 / art.height)
+            resized = art.resize((max(1, round(art.width * factor)), max(1, round(art.height * factor))),
+                                 Image.Resampling.LANCZOS)
+            pad = 24
+            layer = Image.new("RGBA", (resized.width + pad * 2, resized.height + pad * 2), (0, 0, 0, 0))
+            shadow = Image.new("RGBA", resized.size, (0, 0, 0, 0))
+            shadow.putalpha(resized.getchannel("A").point(lambda a: round(a * 0.62)))
+            layer.alpha_composite(shadow, (pad + 6, pad + 10))
+            layer = layer.filter(ImageFilter.GaussianBlur(9))
+            layer.alpha_composite(resized, (pad, pad))
+            ratio = 0.48
+            subject_y = tly + height * ratio
+            lane_x = (tlx + trx) / 2 + (blx - tlx) * ratio
+            x = round(lane_x - layer.width / 2)
+            y = round(subject_y - layer.height / 2)
+            return layer, (x, y)
         if result.item.kind in ("character", "char", "persona"):
             # 角色：按身高铺满整张卡，再上浮 6%，让头探出卡顶（参考图里头顶都越界）。
             factor = height * 1.55 / art.height
@@ -701,7 +711,6 @@ class Renderer:
             if result.item.kind == "persona" and art.width / art.height > 0.70:
                 factor = min(factor, width * 2.8 / art.width)
         else:
-            # 武器：原比例放进卡片，横向不超过卡宽的 86%，避免枪管被切。
             factor = min(width * 0.86 / art.width, height * 0.78 / art.height)
         resized = art.resize((max(1, int(art.width * factor)), max(1, int(art.height * factor))),
                              Image.Resampling.LANCZOS)
@@ -1417,6 +1426,8 @@ class Renderer:
         scale = canvas.width / DESIGN_W
         if canvas.width >= 1500:
             scale *= .60  # 宽屏左下留白内显示，避开90%高度的中央五星。
+        else:
+            scale *= .72  # 单抽 1200px 宽屏紧凑展示，避免压住中央五星卡底。
         layer = Image.new("RGBA", (DESIGN_W, 1080))
         draw = ImageDraw.Draw(layer)
         # 底部留白内独立排版；短切口与背景斜线呼应。
@@ -1450,29 +1461,94 @@ class Renderer:
         total = re.search(r"累计\s*(\d+)\s*抽",footer)
         if progress:
             current, hard = map(int,progress.groups())
-            draw.polygon([(610,965),(1000,965),(983,1040),(592,1040)],fill=(0,0,0,235))
-            draw.polygon([(614,960),(627,960),(610,1036),(597,1036)],fill=(0,57,240,255))
-            draw.text((642,970),"保底进度",font=self.font(19),fill=(190,198,216))
-            draw.text((800,960),str(current),font=self.font(56,latin=True),fill="white")
-            draw.text((888,988),f"/ {hard}",font=self.font(27,latin=True),fill=(175,186,215))
+            draw.polygon([(604,962),(1004,962),(986,1044),(586,1044)],fill=(0,0,0,235))
+            draw.polygon([(608,957),(622,957),(604,1040),(590,1040)],fill=(0,57,240,255))
+            draw.text((638,972),"保底进度",font=self.font(20),fill=(190,198,216))
+            cur_str = str(current)
+            cur_font = self.font(52, latin=True)
+            hard_font = self.font(26, latin=True)
+            hard_str = f"/ {hard}"
+            cur_w = draw.textlength(cur_str, font=cur_font)
+            hard_w = draw.textlength(hard_str, font=hard_font)
+            group_right = 966
+            hard_x = group_right - hard_w
+            cur_x = hard_x - cur_w - 10
+            draw.text((cur_x, 1014), cur_str, font=cur_font, fill="white", anchor="ls")
+            draw.text((hard_x, 1014), hard_str, font=hard_font, fill=(175,186,215), anchor="ls")
             # 细分进度条只有当前保底填充，五星重置后归空。
-            draw.polygon([(639,1027),(953,1027),(950,1032),(638,1032)],fill=(52,57,75))
-            fill_width = round(311*min(1,current/max(1,hard)))
+            draw.polygon([(636,1026),(964,1026),(961,1034),(634,1034)],fill=(46,52,72))
+            fill_width = round(326*min(1,current/max(1,hard)))
             if fill_width:
-                draw.rectangle((640,1027,640+fill_width,1032),fill=(47,87,255))
+                draw.polygon([(636,1026),(636+fill_width,1026),
+                              (634+fill_width,1034),(634,1034)],fill=(56,108,255))
         if total:
-            draw.polygon([(1050,965),(1350,965),(1333,1040),(1032,1040)],fill=(0,0,0,225))
-            draw.text((1070,975),"累计契约",font=self.font(19),fill=(190,198,216))
-            # 避免大累计值挤出面板。
-            number=total.group(1); font=self.font(46,latin=True)
-            while draw.textlength(number,font=font)>100 and font.size>18:
-                font=self.font(font.size-1,latin=True)
-            draw.polygon([(1053,1030),(1068,1030),(1065,1035),(1050,1035)],fill=(0,57,240))
-            draw.text((1190,963),number,font=font,fill="white")
-            draw.text((1304,1014),"抽",font=self.font(16),fill=(190,198,216))
+            draw.polygon([(1044,962),(1362,962),(1344,1044),(1026,1044)],fill=(0,0,0,225))
+            draw.polygon([(1048,957),(1058,957),(1040,1040),(1030,1040)],fill=(0,57,240,255))
+            draw.text((1074,974),"累计契约",font=self.font(20),fill=(190,198,216))
+            # 避免大累计值挤出面板，同时让单位「抽」紧跟数字基线对齐。
+            number = total.group(1)
+            num_font = self.font(46, latin=True)
+            while draw.textlength(number, font=num_font) > 130 and num_font.size > 18:
+                num_font = self.font(num_font.size - 1, latin=True)
+            unit_font = self.font(20)
+            num_w = draw.textlength(number, font=num_font)
+            unit_w = draw.textlength("抽", font=unit_font)
+            right_edge = 1326
+            unit_x = right_edge - unit_w
+            num_x = unit_x - num_w - 6
+            draw.text((num_x, 1018), number, font=num_font, fill="white", anchor="ls")
+            draw.text((unit_x, 1016), "抽", font=unit_font, fill=(190,198,216), anchor="ls")
         if canvas.size != layer.size:
             layer = layer.resize((round(DESIGN_W * scale), round(1080 * scale)),Image.Resampling.LANCZOS)
         canvas.alpha_composite(layer, (0, canvas.height - layer.height))
+
+    def _single_nameplate(self, canvas: Image.Image, result: PullResult) -> None:
+        """单抽右下空白区斜切铭牌：展示稀有度、类型属性与物品名称。"""
+        draw = ImageDraw.Draw(canvas)
+        rarity = max(2, min(5, result.rarity))
+        accent = {
+            5: (196, 134, 255, 255),
+            4: (255, 206, 86, 255),
+            3: (154, 198, 255, 255),
+            2: (108, 224, 168, 255),
+        }[rarity]
+        x0, y0, box_w, box_h = 776, 618, 384, 118
+        skew = 18
+        # 黑色底投影 + 深蓝黑斜切铭牌 + 左侧稀有度斜条
+        draw.polygon([(x0 + skew + 6, y0 + 6), (x0 + box_w + 6, y0 + 6),
+                      (x0 + box_w - skew + 6, y0 + box_h + 6), (x0 + 6, y0 + box_h + 6)],
+                     fill=(0, 0, 0, 170))
+        draw.polygon([(x0 + skew, y0), (x0 + box_w, y0),
+                      (x0 + box_w - skew, y0 + box_h), (x0, y0 + box_h)],
+                     fill=(9, 12, 24, 232))
+        draw.polygon([(x0 + skew, y0), (x0 + skew + 12, y0),
+                      (x0 + 12, y0 + box_h), (x0, y0 + box_h)],
+                     fill=accent)
+        draw.line([(x0 + skew, y0), (x0 + box_w, y0)], fill=(*accent[:3], 180), width=2)
+
+        stars = "★" * rarity
+        kind_text = {
+            "char": "限定怪盗" if result.item.limited else "怪盗角色",
+            "character": "限定怪盗" if result.item.limited else "怪盗角色",
+            "weapon": "专属武器" if result.item.rarity >= 5 else "武器",
+            "persona": "人格面具",
+        }.get(result.item.kind, result.item.kind_label)
+        meta_parts = [kind_text]
+        if result.item.element:
+            meta_parts.append(result.item.element)
+        meta_text = " · ".join(meta_parts)
+        star_font = self.font(22)
+        draw.text((x0 + 34, y0 + 20), stars, font=star_font, fill=accent)
+        star_w = draw.textlength(stars, font=star_font)
+        draw.text((x0 + 46 + star_w, y0 + 23), meta_text, font=self.font(18), fill=(186, 198, 232))
+
+        name = result.item.name
+        size = 34
+        name_font = self.font(size)
+        while size > 18 and draw.textlength(name, font=name_font) > box_w - 64:
+            size -= 1
+            name_font = self.font(size)
+        draw.text((x0 + 30, y0 + 58), name, font=name_font, fill=(250, 251, 255))
 
     # ------------------------------------------------------------------
     # 对外接口
@@ -1488,10 +1564,12 @@ class Renderer:
         size: tuple[int, int] = (DESIGN_W, DESIGN_H),
         avatar: bytes | None = None,
         batch_label: str = "",
+        show_user_panel: bool = True,
     ) -> Image.Image:
         if size != (DESIGN_W, DESIGN_H):
             # 先在设计坐标完成构图，再等比缩放/留边；不改变立绘定位算法。
-            full = self.render_ten(results, banner, user_name, footer, show_new, caption, avatar=avatar, batch_label=batch_label)
+            full = self.render_ten(results, banner, user_name, footer, show_new, caption,
+                                   avatar=avatar, batch_label=batch_label, show_user_panel=show_user_panel)
             return ImageOps.pad(full, size, Image.Resampling.LANCZOS, color=(5,6,9))
         canvas = self._background(size)
         scale = self._scale(size)
@@ -1553,11 +1631,19 @@ class Renderer:
                 if result.is_new:
                     left, top = geo.quad[0]
                     self._new_sticker(canvas, left * scale, top * scale, scale)
-        self._user_panel(canvas, user_name, footer, avatar)
+        if show_user_panel:
+            self._user_panel(canvas, user_name, footer, avatar)
         if batch_label:
             draw = ImageDraw.Draw(canvas)
-            draw.rounded_rectangle((38, 47, 760, 103), radius=8, fill=(5, 7, 18, 235))
-            draw.text((56, 55), batch_label, font=self.font(28), fill=(235, 239, 255))
+            font = self.font(24)
+            text_w = draw.textlength(batch_label, font=font)
+            bx, by, bh = 30, 102, 44
+            bw = round(text_w) + 56
+            draw.polygon([(bx + 12, by), (bx + bw, by), (bx + bw - 12, by + bh), (bx, by + bh)],
+                         fill=(7, 10, 22, 232))
+            draw.polygon([(bx + 12, by), (bx + 22, by), (bx + 10, by + bh), (bx, by + bh)],
+                         fill=(0, 57, 240, 255))
+            draw.text((bx + 32, by + bh // 2), batch_label, font=font, fill=(235, 239, 255), anchor="lm")
 
         return canvas.convert("RGB")
 
@@ -1583,14 +1669,18 @@ class Renderer:
         if not 1 <= len(results) <= 40:
             raise ValueError("批量结果必须为1至40抽")
         pages = (len(results) + 9) // 10
-        header_height = 80
-        canvas = Image.new("RGB", (DESIGN_W, header_height + DESIGN_H * pages), (5, 7, 18))
+        header_height = 88
+        canvas = Image.new("RGB", (DESIGN_W, header_height + DESIGN_H * pages), (7, 10, 22))
         draw = ImageDraw.Draw(canvas)
-        draw.text((40, 22), summary, font=self.font(30), fill=(235, 239, 255))
+        draw.polygon([(0, header_height - 8), (DESIGN_W, header_height - 8),
+                      (DESIGN_W, header_height), (0, header_height)], fill=(0, 38, 196))
+        draw.polygon([(36, 18), (48, 18), (38, 66), (26, 66)], fill=(0, 57, 240))
+        draw.text((64, 42), summary, font=self.font(30), fill=(242, 245, 255), anchor="lm")
         for page in range(pages):
-            label = f"第{page+1}/{pages}组 · 第{page*10+1}—{min((page+1)*10, len(results))}抽 · 全部结算值"
+            label = f"第{page+1}/{pages}组 · 第{page*10+1}—{min((page+1)*10, len(results))}抽"
             row = self.render_ten(results[page*10:(page+1)*10], banner,
-                                  user_name=user_name, footer=footer, avatar=avatar, batch_label=label)
+                                  user_name=user_name, footer=footer, avatar=avatar,
+                                  batch_label=label, show_user_panel=(page == pages - 1))
             canvas.paste(row, (0, header_height + page * DESIGN_H))
         return canvas
 
@@ -1634,6 +1724,7 @@ class Renderer:
         self._blue_cutlines(canvas)
         if result.is_new:
             self._new_sticker(canvas, shifted.quad[0][0], shifted.quad[0][1], 1)
+        self._single_nameplate(canvas, result)
         self._user_panel(canvas, user_name, footer, avatar)
         return canvas.convert("RGB")
 

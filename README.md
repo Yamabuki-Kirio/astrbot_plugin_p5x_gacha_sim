@@ -404,7 +404,7 @@ p5x 保底
 
 ## 维护与开发
 
-- [更新记录：v0.3.12](UPDATE-v0.3.12.md) · [v0.3.11](UPDATE-v0.3.11.md) · [v0.3.10](UPDATE-v0.3.10.md) · [v0.3.9](UPDATE-v0.3.9.md) · [v0.3.6](UPDATE-v0.3.6.md) · [v0.3.5](UPDATE-v0.3.5.md) · [v0.3.4](UPDATE-v0.3.4.md) · [v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
+- [更新记录：v0.3.13](UPDATE-v0.3.13.md) · [v0.3.12](UPDATE-v0.3.12.md) · [v0.3.11](UPDATE-v0.3.11.md) · [v0.3.10](UPDATE-v0.3.10.md) · [v0.3.9](UPDATE-v0.3.9.md) · [v0.3.6](UPDATE-v0.3.6.md) · [v0.3.5](UPDATE-v0.3.5.md) · [v0.3.4](UPDATE-v0.3.4.md) · [v0.3.3](UPDATE-v0.3.3.md) · [v0.3.2](UPDATE-v0.3.2.md) · [v0.3.1](UPDATE-v0.3.1.md) · [v0.3.0](UPDATE-v0.3.0.md) · [v0.2.1](UPDATE-v0.2.1.md) · [v0.2.0](UPDATE-v0.2.0.md)
 - [素材说明](assets/README.md) · [图层说明](assets/character_layers/README.md) · [数据与素材准备清单](docs/准备清单.md)
 - 卡池配置：`data/banners.json`；角色／武器条目：`data/items/`。
 - 角色定位：`assets/character_layers/placement.json`；低星人格面具定位：`assets/persona_placement.json`。

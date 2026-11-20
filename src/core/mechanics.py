@@ -17,6 +17,7 @@ import random
 from dataclasses import dataclass, replace
 from typing import Sequence
 
+from .collection import owner_id
 from .models import Banner, Item, PityState
 
 RARITY_ASC = (2, 3, 4, 5)
@@ -82,7 +83,31 @@ class GachaMechanics:
     # ------------------------------------------------------------------
     # 抽取
     # ------------------------------------------------------------------
-    def _choose(self, banner: Banner, rarity: int, guaranteed: bool) -> tuple[Item, bool, bool]:
+    def _pick_weapon(
+        self,
+        weapons: Sequence[Item],
+        owned_chars: set[str] | None = None,
+        owned_copies: dict[str, int] | None = None,
+    ) -> Item:
+        """武器优先抽取已拥有角色的专武/武器（优先未满阶 6/6）。"""
+        if owned_chars:
+            matching = [w for w in weapons if owner_id(w) in owned_chars]
+            if matching:
+                if owned_copies is not None:
+                    unmaxed = [w for w in matching if owned_copies.get(w.id, 0) < 7]
+                    if unmaxed:
+                        return self.rng.choice(unmaxed)
+                return self.rng.choice(matching)
+        return self.rng.choice(list(weapons))
+
+    def _choose(
+        self,
+        banner: Banner,
+        rarity: int,
+        guaranteed: bool,
+        owned_chars: set[str] | None = None,
+        owned_copies: dict[str, int] | None = None,
+    ) -> tuple[Item, bool, bool]:
         """返回 (物品, 是否 UP, 抽完后 guaranteed 的新值)。"""
         candidates = banner.candidates(rarity)
         ups = banner.ups(rarity)
@@ -94,7 +119,23 @@ class GachaMechanics:
 
         # 没有 UP，或没有可歪的对象：只可能出候选池里的东西，视为不重置小保底。
         if not ups or not others:
-            item = self.rng.choice(ups or candidates)
+            pool_items = ups or candidates
+            if not ups:
+                chars = [i for i in pool_items if i.id.startswith("char:")]
+                weapons = [i for i in pool_items if i.id.startswith("weapon:")]
+                if chars and weapons:
+                    # 综合池：同时含角色与武器；已有可配对角色时 50/50 平衡，无已有角色时偏向角色。
+                    has_owned_weapon = bool(owned_chars and any(owner_id(w) in owned_chars for w in weapons))
+                    weapon_prob = 0.50 if (owned_chars is None or has_owned_weapon) else 0.20
+                    if self.rng.random() < weapon_prob:
+                        item = self._pick_weapon(weapons, owned_chars, owned_copies)
+                    else:
+                        item = self.rng.choice(chars)
+                    return item, False, guaranteed
+                if weapons and not chars and owned_chars is not None:
+                    item = self._pick_weapon(weapons, owned_chars, owned_copies)
+                    return item, False, guaranteed
+            item = self.rng.choice(pool_items)
             return item, rarity in (4, 5) and bool(ups), guaranteed if not ups else False
 
         rate = banner.up_rate.get(rarity, 0.5)
@@ -103,7 +144,14 @@ class GachaMechanics:
             return self.rng.choice(list(ups)), True, False
         return self.rng.choice(others), False, True
 
-    def pull(self, banner: Banner, state: PityState, index: int = 1) -> tuple[PullResult, PityState]:
+    def pull(
+        self,
+        banner: Banner,
+        state: PityState,
+        index: int = 1,
+        owned_chars: set[str] | None = None,
+        owned_copies: dict[str, int] | None = None,
+    ) -> tuple[PullResult, PityState]:
         if not banner.enabled:
             raise ValueError(f"卡池 {banner.name} 已停用")
 
@@ -121,11 +169,11 @@ class GachaMechanics:
             rarity = self._roll_low_rarity(banner)
 
         if rarity == 5:
-            item, is_up, next_guaranteed5 = self._choose(banner, 5, state.guaranteed5)
+            item, is_up, next_guaranteed5 = self._choose(banner, 5, state.guaranteed5, owned_chars, owned_copies)
             next_guaranteed4 = state.guaranteed4
             pity5, pity4 = 0, 0  # 5★ 同时满足 4★ 保底
         elif rarity == 4:
-            item, is_up, next_guaranteed4 = self._choose(banner, 4, state.guaranteed4)
+            item, is_up, next_guaranteed4 = self._choose(banner, 4, state.guaranteed4, owned_chars, owned_copies)
             next_guaranteed5 = state.guaranteed5
             pity5, pity4 = state.pity5 + 1, 0
         else:
@@ -155,13 +203,26 @@ class GachaMechanics:
         )
         return result, new_state
 
-    def pull_many(self, banner: Banner, state: PityState, count: int) -> tuple[list[PullResult], PityState]:
+    def pull_many(
+        self,
+        banner: Banner,
+        state: PityState,
+        count: int,
+        owned_chars: set[str] | None = None,
+        owned_copies: dict[str, int] | None = None,
+    ) -> tuple[list[PullResult], PityState]:
         if count <= 0:
             raise ValueError("抽卡次数必须大于 0")
+        local_chars = set(owned_chars) if owned_chars is not None else None
+        local_copies = dict(owned_copies) if owned_copies is not None else None
         results: list[PullResult] = []
         for index in range(1, count + 1):
-            result, state = self.pull(banner, state, index)
+            result, state = self.pull(banner, state, index, local_chars, local_copies)
             results.append(result)
+            if local_chars is not None and result.item.id.startswith("char:") and result.rarity in (4, 5):
+                local_chars.add(result.item.id)
+            if local_copies is not None and result.item.id.startswith(("char:", "weapon:")) and result.rarity in (4, 5):
+                local_copies[result.item.id] = min(7, local_copies.get(result.item.id, 0) + 1)
         return results, state
 
     # ------------------------------------------------------------------

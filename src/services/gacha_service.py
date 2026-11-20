@@ -91,8 +91,16 @@ class GachaService:
                 tip = "可发送 /签到 领取今日奖励。" if not quota.signed else "今日已签到，请在北京时间零点刷新后再来。"
                 raise ValueError(f"今日剩余 {quota.remaining} 抽，本次需要 {count} 抽。{tip}")
             state = self.store.load_state(platform_id, user_id, banner.pity_group)
-            results, new_state = self.mechanics.pull_many(banner, state, count)
-            seen = {row['item_id'] for row in self.store.owned_items(platform_id, user_id)}
+            owned_rows = self.store.owned_items(platform_id, user_id)
+            seen = {row['item_id'] for row in owned_rows}
+            owned_chars = {row['item_id'] for row in owned_rows if row['item_id'].startswith('char:')}
+            owned_copies = {row['item_id']: row['copies'] for row in owned_rows}
+            try:
+                results, new_state = self.mechanics.pull_many(
+                    banner, state, count, owned_chars=owned_chars, owned_copies=owned_copies
+                )
+            except TypeError:
+                results, new_state = self.mechanics.pull_many(banner, state, count)
             for index, result in enumerate(results):
                 if collectible(result.item) and result.item.id.startswith('char:') and result.item.id not in seen:
                     results[index] = replace(result, is_new=True)

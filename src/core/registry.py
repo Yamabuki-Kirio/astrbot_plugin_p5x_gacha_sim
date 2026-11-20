@@ -136,6 +136,28 @@ class Registry:
                                    rate_up={5: (item,)}, note=f"五星 UP：{item.name}；非 UP 五星仍仅来自限定范围")
                 targeted.validate()
                 self.banners[targeted.id] = targeted
+        # 全限定综合池：全限定 UP 角色 + 全限定专武 + 四星角色与武器（武器优先抽已拥有角色）
+        char_base = self.banners.get("char_all_limited")
+        wep_base = self.banners.get("weapon_all_limited")
+        if char_base is not None and wep_base is not None:
+            mixed_pool = dict(char_base.pool)
+            mixed_pool[5] = self.limited_characters() + self.limited_weapons()
+            mixed_pool[4] = tuple(
+                i for i in self.items.values()
+                if i.rarity == 4 and i.id.startswith(("char:", "weapon:")) and not _excluded_item(i.id, self.excluded)
+            )
+            mixed = replace(
+                char_base,
+                id="all_limited",
+                name="全限定综合池",
+                pool=mixed_pool,
+                rate_up={},
+                selector_at=None,
+                enabled=True,
+                note="含全部限定角色与限定专武，抽中武器时优先匹配已拥有角色",
+            )
+            mixed.validate()
+            self.banners[mixed.id] = mixed
 
     def configured_default(self, config):
         kind = config.get("default_pool_type", "character")
@@ -214,7 +236,9 @@ class Registry:
         key = normalize_key(text)
         generic = {"全角色": "char_all_limited", "全角色池": "char_all_limited", "角色池": "char_all_limited",
                    "全限定角色池": "char_all_limited", "全武器": "weapon_all_limited", "全武器池": "weapon_all_limited",
-                   "武器池": "weapon_all_limited", "全限定武器池": "weapon_all_limited"}
+                   "武器池": "weapon_all_limited", "全限定武器池": "weapon_all_limited",
+                   "综合池": "all_limited", "全池": "all_limited", "混合池": "all_limited",
+                   "全限定综合池": "all_limited", "全up池": "all_limited"}
         if key in generic:
             return self.banners.get(generic[key])
         if text.startswith("武器 ") or text.startswith("武器池 "):

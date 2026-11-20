@@ -36,14 +36,15 @@ TUTORIAL_IMAGE = Path(__file__).resolve().parent / "assets" / "tutorial" / "caro
 HELP_TEXT = """P5X 模拟抽卡
 /卡池帮助           卡萝莉娜的图片版新手教程
 /卡池               一张完整限定角色目录与当前 UP
-/队伍 [页码]        已拥有的四五星角色/武器与意识/进化
+/队伍 [页码]        已拥有的四五星角色、意识与武器进化
 /签到               每日签到领取额外抽数
 /抽卡次数           查看今日剩余抽数和签到状态
 /刷新               白名单管理员为所有已登记用户增加10抽
 /二十连、/三十连、/四十连 [角色名|卡池]  批量抽取
-/抽卡 [角色名|卡池]  抽完当前剩余额度，本次返还保留
-/十连 [角色名|别名]  默认抽全限定角色池，指定名字抽对应 UP 池
-/十连 武器池         全限定武器池
+/抽卡 [角色名|卡池]  抽完当前剩余额度，默认全UP+全武器综合池（武器优先已有角色）
+/十连 [角色名|别名]  默认抽全UP+全武器综合池，指定名字抽对应 UP 池
+/十连 全角色池       仅抽全限定角色池
+/十连 武器池         全限定武器池（优先已有角色专武）
 /十连 武器 <角色名|武器名>  指定武器 UP 池
 /p5x 选择 <角色名|全角色池|武器池>  个人默认池
 /p5x 单抽 [角色名|卡池]  单抽
@@ -292,11 +293,12 @@ class P5XGachaPlugin(Star):
                 yield event.chain_result(chain)
             else:
                 lines = [f"{display_name(event)}的队伍（{index+1}/{len(pages)}） · 今日可抽 {quota.remaining} 抽"]
-                if not owned:
-                    lines.append("尚未获得四、五星角色或武器，发送 /十连 开始收集。")
+                if not rows:
+                    lines.append("尚未获得四、五星角色，发送 /十连 开始收集。")
                 for row in rows:
                     for entry in row:
-                        lines.append(f"{entry.item.rarity}★ {entry.item.name} · {entry.label} {entry.level}/6" + (" · 满阶" if entry.maxed else ""))
+                        weapon_part = f" · 武器进化 {entry.weapon.level}/6" if getattr(entry, "weapon", None) else ""
+                        lines.append(f"{entry.item.rarity}★ {entry.item.name} · {entry.label} {entry.level}/6{weapon_part}" + (" · 满阶" if entry.maxed else ""))
                 yield event.plain_result("\n".join(lines))
 
     @filter.command("队伍", priority=1)
@@ -388,7 +390,7 @@ class P5XGachaPlugin(Star):
             yield event.plain_result(self.registry.selection_error(target))
             return
         self.store.set_default_banner(self._platform(event), str(event.get_sender_id()), banner.id)
-        yield event.plain_result(f"已把单抽及保底查询的默认卡池设为「{banner.name}」。\n不带参数的十连及批量抽卡仍使用全限定角色池；抽指定池请在本次命令中填写目标。")
+        yield event.plain_result(f"已把单抽及保底查询的默认卡池设为「{banner.name}」。\n不带参数的十连及批量抽卡仍使用全限定综合池；抽指定池请在本次命令中填写目标。")
 
     @p5x_group.command("单抽", priority=1)
     async def cmd_single(self, event: AstrMessageEvent, target: str = ""):
@@ -488,8 +490,8 @@ class P5XGachaPlugin(Star):
             return
         target = self._target(event, target)
         try:
-            # 裸发批量抽卡始终回到全角色随机池，不继承个人选择或配置的 UP 池。
-            banner = self.registry.resolve(target) if target else self.registry.banner("char_all_limited")
+            # 裸发批量抽卡默认进入全限定综合池（全限定UP角色 + 全限定武器，武器优先匹配已有角色）。
+            banner = self.registry.resolve(target) if target else self.registry.banner("all_limited")
         except ValueError as exc:
             yield event.plain_result(f"默认卡池配置错误：{exc}")
             return

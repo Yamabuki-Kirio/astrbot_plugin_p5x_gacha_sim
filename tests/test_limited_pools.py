@@ -107,7 +107,7 @@ def test_roster_pages_include_everyone(registry):
     assert tuple(i for page in pages for i in page)==roster
     assert all(1<=len(p)<=12 for p in pages)
     image=render_roster(Renderer(),pages[-1],len(pages),len(pages),'当前：汐见琴音·角色池',{'char:KOTONE'},36)
-    assert image.size==(1440,660)
+    assert image.size==(1440,697)
 
 
 def test_missed_up_guarantee_is_shared_between_targets(registry,tmp_path):

@@ -59,7 +59,7 @@ def run(generator):return asyncio.run(collect(generator))
 
 def test_standalone_default_and_named_ten(plugin):
     result=run(plugin.direct_ten(Event('/十连')))
-    assert '全限定角色池' in result[0]
+    assert '全限定综合池' in result[0]
     result=run(plugin.direct_ten(Event('/十连 Kotone Shiomi'),'Kotone'))
     assert '汐见琴音·角色池' in result[0]
     state=plugin.service.state_of('qq','123',plugin.registry.resolve('鬼太郎'))
@@ -82,9 +82,9 @@ def test_defaults_config_personal_explicit_precedence(plugin):
 def test_bare_ten_ignores_saved_and_configured_target(plugin):
     plugin.config['selected_character'] = '鬼太郎'
     run(plugin.cmd_select(Event('/p5x 选择 哈姆子'), '哈姆子'))
-    assert '全限定角色池' in run(plugin.direct_ten(Event('/十连')))[0]
+    assert '全限定综合池' in run(plugin.direct_ten(Event('/十连')))[0]
     assert '汐见琴音·角色池' in run(plugin.direct_ten(Event('/十连 哈姆子'), '哈姆子'))[0]
-    assert '全限定角色池' in run(plugin.direct_ten(Event('/十连')))[0]
+    assert '全限定综合池' in run(plugin.direct_ten(Event('/十连')))[0]
 
 def test_roster_text_and_image_paths(plugin,monkeypatch):
     output=run(plugin.direct_banners(Event('/卡池')))
@@ -99,7 +99,7 @@ def test_roster_text_and_image_paths(plugin,monkeypatch):
     from PIL import Image
     import io
     with Image.open(io.BytesIO(output[0][0])) as image:
-        assert image.size==(1440,3585)
+        assert image.size==(1440,3622)
 
 
 def test_bad_and_ambiguous_input_do_not_draw(plugin):
@@ -108,7 +108,7 @@ def test_bad_and_ambiguous_input_do_not_draw(plugin):
         assert '没有找到' in result[0] or '歧义' in result[0] or '限定' in result[0]
     assert plugin.store.total_pulls('qq','123')==0
     plugin.config['selected_character']='typo'
-    assert '全限定角色池' in run(plugin.direct_ten(Event('/十连')))[0]
+    assert '全限定综合池' in run(plugin.direct_ten(Event('/十连')))[0]
     assert plugin.store.total_pulls('qq','123')==10
 
 def test_pity_and_number_selection(plugin):
@@ -205,7 +205,8 @@ def test_team_command_lists_every_owned_card_and_keeps_groups(plugin,monkeypatch
             plugin.store.add_owned('qq','123',item)
     text=run(plugin.direct_team(Event('/队伍')))
     owned=plugin.service.team_of('qq','123')
-    for entry in owned:assert any(entry.item.name in page for page in text)
+    owned_chars=[e for e in owned if e.item.id.startswith('char:')]
+    for entry in owned_chars:assert any(entry.item.name in page for page in text)
     assert len(text)>1
     assert len(run(plugin.direct_team(Event('/队伍 2'),'2')))==1
     plugin.config['enable_rendering']=True
@@ -218,7 +219,7 @@ def test_team_command_lists_every_owned_card_and_keeps_groups(plugin,monkeypatch
     monkeypatch.setattr(plugin,'_render',image)
     result=run(plugin.cmd_team(Event('/p5x 队伍')))
     assert len(result)==len(captured)
-    assert sum(len(row) for rows,_,_ in captured for row in rows)==len(owned)
+    assert sum(len(row) for rows,_,_ in captured for row in rows)==len(owned_chars)
 
 
 def test_overflow_notice_and_remaining_in_image_path(plugin,monkeypatch):
@@ -274,7 +275,7 @@ def test_plain_commands_default_off_and_unrelated_messages(plugin):
 
 def test_plain_commands_draw_once_and_preserve_target(plugin):
     plugin.config['enable_plain_commands'] = True
-    for text, expected in [('十连', '全限定角色池'), ('十连 哈姆子', '汐见琴音'),
+    for text, expected in [('十连', '全限定综合池'), ('十连 哈姆子', '汐见琴音'),
                            ('p5x 十连 鬼太郎', '结城理'), ('十连 武器池', '武器池')]:
         event = Event(text)
         output = run(plugin.handle_plain_commands(event))
@@ -335,7 +336,7 @@ def test_multi_draw_render_single_composite_and_fallback_without_redraw(plugin,m
     output=run(plugin.direct_thirty(Event('/三十连 武器池'),'武器池'))
     assert len(output)==1 and len(output[0])==1
     with Image.open(io.BytesIO(output[0][0])) as image:
-        assert image.size==(1920,80+873*3)
+        assert image.size==(1920,88+873*3)
     assert [n for n,_ in calls]==[10,10,10]
     assert calls[0][1]['batch_label'].startswith('第1/3组')
     assert all('当前 ' in kw['footer'] for _,kw in calls)
@@ -370,7 +371,7 @@ def test_draw_all_split_images_and_partial_last_row(plugin,monkeypatch):
     assert len(output)==2
     for result,rows in zip(output,[4,2]):
         with Image.open(io.BytesIO(result[0])) as image:
-            assert image.size==(1920,80+873*rows)
+            assert image.size==(1920,88+873*rows)
     assert plugin.store.total_pulls('qq','123')==57
     assert plugin.service.quota_of('qq','123').remaining==0
     plugin.config['enable_plain_commands']=False

@@ -30,8 +30,8 @@ DESIGN_W, DESIGN_H = 1920, 873
 
 # 卡内边缘光与卡外背光共用光源；角色身份只改变碎光位置，不改变亮度和光束尺寸。
 CARD_LIGHTING = {
-    4: {"tint": (255, 211, 112), "reach": 36, "haze_alpha": 44},
-    5: {"tint": (182, 116, 237), "reach": 54, "haze_alpha": 62},
+    4: {"tint": (255, 210, 88), "reach": 74, "haze_alpha": 78},
+    5: {"tint": (196, 118, 255), "reach": 110, "haze_alpha": 90},
 }
 
 # ---------------------------------------------------------------------------
@@ -624,10 +624,10 @@ class Renderer:
         left = Image.new("L", art.size)
         ImageDraw.Draw(left).polygon([(0,0),*seam,(0,h)],fill=255)
         tl,tr,br,bl = geometry.quad
-        # 两张脸分别占上、下半区，尺度按脸宽约占槽宽的 68% 确定。
-        factor = geometry.width*.92/(w*.17)
-        for mask, face, target_y in ((left,(.32,.15),.40),
-                                    (ImageOps.invert(left),(.63,.385),.68)):
+        # 两张脸分别占上、下半区，适当收缩尺度并右移居中，避免双子脸部与帽檐贴左被裁。
+        factor = geometry.width*.80/(w*.17)
+        for mask, face, target_y in ((left,(.245,.155),.39),
+                                    (ImageOps.invert(left),(.555,.385),.68)):
             figure = art.copy()
             figure.putalpha(ImageChops.multiply(art.getchannel("A"),mask))
             figure = figure.resize((max(1,round(w*factor)),max(1,round(h*factor))),
@@ -671,10 +671,10 @@ class Renderer:
             focus = placement.get("focus", [.5,.3])
             if placement.get("flip_x"):
                 art = ImageOps.mirror(art)
-            # 小幅宽度让步保留主体大小；翅膀和尾巴可以裁切，脸部必须留在槽内。
-            factor = min(height * placement.get("max_height", 1.16) / art.height, width * placement.get("max_width", 2.3) / art.width)
+            # 小幅宽度让步保留主体大小；翅膀和尾巴可以裁切，头顶可略微破出卡顶。
+            factor = min(height * placement.get("max_height", 1.22) / art.height, width * placement.get("max_width", 2.35) / art.width)
             resized = art.resize((max(1,round(art.width*factor)),max(1,round(art.height*factor))), Image.Resampling.LANCZOS)
-            subject_y = tly + height * placement.get("target_y", .29)
+            subject_y = tly + height * placement.get("target_y", .26)
             y = subject_y - resized.height * focus[1]
             ratio = (subject_y-tly)/height
             lane_x = (tlx+trx)/2+(blx-tlx)*ratio
@@ -1033,82 +1033,248 @@ class Renderer:
         return segments + ((1, .32+phase*.08, .46+phase*.08),) if rarity >= 5 else segments
 
     def _five_flare(self, canvas, geometry, scale, rarity=5, item_id="", slot=0):
-        """低亮度、细长的顶底背光；亮芯由前景品质框和离散星芒承担。"""
+        """实机式高星顶底放射泛光与柔和光束；严格约束在卡顶上方与卡底下方。"""
         if rarity < 4:
             return
-        lighting=CARD_LIGHTING[5 if rarity>=5 else 4]
-        color=lighting["tint"]
-        reach=lighting["reach"]*scale
-        top=geometry.quad[0][1]*scale
-        bottom=geometry.quad[3][1]*scale
-        for a,b,sign in ((geometry.quad[0],geometry.quad[1],-1),
-                         (geometry.quad[3],geometry.quad[2],1)):
-            cx=(a[0]+b[0])*.5*scale
-            y=a[1]*scale
-            half=geometry.width*scale*.58
-            pad=max(1,round(45*scale))
-            x0=max(0,int(cx-half)-pad)
-            x1=min(canvas.width,int(cx+half)+pad+1)
-            y0=max(0,int(min(y,y+sign*reach))-pad)
-            y1=min(canvas.height,int(max(y,y+sign*reach))+pad+1)
-            if x1<=x0 or y1<=y0:
+        lighting = CARD_LIGHTING[5 if rarity >= 5 else 4]
+        color = lighting["tint"]
+        core_color = (166, 216, 255) if rarity >= 5 else (255, 232, 148)
+        reach = lighting["reach"] * scale
+        top = geometry.quad[0][1] * scale
+        bottom = geometry.quad[3][1] * scale
+        for a, b, sign in ((geometry.quad[0], geometry.quad[1], -1),
+                           (geometry.quad[3], geometry.quad[2], 1)):
+            cx = (a[0] + b[0]) * .5 * scale
+            y = a[1] * scale
+            half = geometry.width * scale * .68
+            pad = max(1, round(58 * scale))
+            x0 = max(0, int(cx - half) - pad)
+            x1 = min(canvas.width, int(cx + half) + pad + 1)
+            y0 = max(0, int(min(y, y + sign * reach)) - pad)
+            y1 = min(canvas.height, int(max(y, y + sign * reach)) + pad + 1)
+            if x1 <= x0 or y1 <= y0:
                 continue
-            source=Image.new("RGBA",(x1-x0,y1-y0))
-            draw=ImageDraw.Draw(source)
-            # 从边缘向外快速衰减，避免不透明梯形经模糊后形成一团灯泡。
-            for row in range(max(1,round(reach))):
-                t=row/max(1,reach)
-                span=half*(1-.45*t)
-                yy=round(y+sign*row-y0)
-                draw.line((cx-span-x0,yy,cx+span-x0,yy),
-                          fill=(*color,round(lighting["haze_alpha"]*(1-t)**2)))
-            for radius in (15,5):
-                glow=source.filter(ImageFilter.GaussianBlur(radius*scale))
-                alpha=glow.getchannel("A")
-                # 严格清除顶底之间整条水平带，模糊也不能泄漏到左右侧。
-                ImageDraw.Draw(alpha).rectangle((0,max(0,int(top)-y0),
-                                                 glow.width,min(glow.height,int(bottom)-y0)),fill=0)
-                glow.putalpha(alpha)
-                canvas.alpha_composite(glow,(x0,y0))
+            source = Image.new("RGBA", (x1 - x0, y1 - y0))
+            draw = ImageDraw.Draw(source)
+            # 外层柔和泛光 + 中央亮芯射线，向外平滑衰减。
+            for row in range(max(1, round(reach))):
+                t = row / max(1, reach)
+                span = half * (1 - .38 * t)
+                yy = round(y + sign * row - y0)
+                mix = max(0.0, 1.0 - t * 2.2)
+                c = tuple(round(color[k] * (1 - mix * 0.45) + core_color[k] * (mix * 0.45)) for k in range(3))
+                draw.line((cx - span - x0, yy, cx + span - x0, yy),
+                          fill=(*c, round(lighting["haze_alpha"] * (1 - t) ** 1.65)))
+            # 3 条细长放射微光束，增强实机高星破顶/破底光感。
+            for offset_f, ray_len, ray_w in ((-0.26, 0.78, 3), (0.0, 1.0, 5), (0.28, 0.72, 3)):
+                rx = cx + half * offset_f - x0
+                ry0 = y - y0
+                ry1 = y + sign * reach * ray_len - y0
+                draw.line((rx, ry0, rx + offset_f * 16 * scale, ry1),
+                          fill=(*core_color, round(lighting["haze_alpha"] * 0.72)),
+                          width=max(1, round(ray_w * scale)))
+            combined = Image.new("RGBA", source.size)
+            for radius, weight in ((22, 0.75), (8, 0.55)):
+                blur = source.filter(ImageFilter.GaussianBlur(radius * scale))
+                alpha = blur.getchannel("A").point(lambda v, w=weight: round(v * w))
+                blur.putalpha(alpha)
+                combined = Image.alpha_composite(combined, blur)
+            alpha = combined.getchannel("A").point(lambda v: min(92, v))
+            # 严格清除顶底之间整条水平带，模糊也不能泄漏到左右侧。
+            ImageDraw.Draw(alpha).rectangle((0, max(0, int(top) - y0),
+                                             combined.width, min(combined.height, int(bottom) - y0)), fill=0)
+            combined.putalpha(alpha)
+            canvas.alpha_composite(combined, (x0, y0))
 
     def _edge_sparkles(self, canvas, geometries, results, scale):
-        """实机式小面积四角星与细光丝，依照前后遮挡关系落在可见品质边上。"""
+        """实机式锐利四角星芒与五星棱彩碎光，依照前后遮挡关系落在可见品质边上。"""
+        shard_palette = ((132, 236, 255), (255, 146, 234), (202, 152, 255), (255, 255, 255))
         for index, (geo, result) in enumerate(zip(geometries, results)):
             if result.rarity < 4:
                 continue
             phase = self._effect_phase(result.item.id, index)
-            tl, tr, br, bl = [(x*scale,y*scale) for x,y in geo.quad]
+            tl, tr, br, bl = [(x * scale, y * scale) for x, y in geo.quad]
             color = CARD_LIGHTING[5 if result.rarity >= 5 else 4]["tint"]
             layer = Image.new("RGBA", canvas.size)
             draw = ImageDraw.Draw(layer)
-            # 五星有两处星芒，四星只在底角保留一个更小的闪点。
-            positions = (.12+phase*.18, .48+phase*.18, .78+phase*.16) if result.rarity >= 5 else (.70+phase*.18,)
+            positions = ((.14 + phase * .14, .46 + phase * .14, .78 + phase * .12)
+                         if result.rarity >= 5 else (.24 + phase * .14, .74 + phase * .14))
             for n, t in enumerate(positions):
-                x, y = tl[0]+(bl[0]-tl[0])*t, tl[1]+(bl[1]-tl[1])*t
-                radius = (27 if result.rarity >= 5 else 13)*scale
+                x, y = tl[0] + (bl[0] - tl[0]) * t, tl[1] + (bl[1] - tl[1]) * t
+                radius = (34 if result.rarity >= 5 else 18) * scale
                 if n:
-                    radius *= .8
-                # 极薄的斜向光丝，星芒中心限制在卡边，不铺白到人物身上。
-                dx, dy = (bl[0]-tl[0])*.033, (bl[1]-tl[1])*.033
-                draw.line((x-dx*1.5,y-dy*1.5,x+dx*1.5,y+dy*1.5),
-                          fill=(*color,210),width=max(1,round(2*scale)))
-                draw.line((x-radius*.18,y-radius*1.45,x+radius*.18,y+radius*1.45),
-                          fill=(255,255,255,185),width=max(1,round(scale)))
-                draw.polygon([(x,y-radius),(x+radius*.14,y-radius*.14),
-                              (x+radius*.7,y),(x+radius*.14,y+radius*.14),
-                              (x,y+radius),(x-radius*.14,y+radius*.14),
-                              (x-radius*.7,y),(x-radius*.14,y-radius*.14)],
-                             fill=(255,255,255,255))
-                draw.ellipse((x-2*scale,y-2*scale,x+2*scale,y+2*scale), fill=(255,255,255,255))
-            halo = layer.filter(ImageFilter.GaussianBlur(max(.5,4*scale)))
-            halo.putalpha(halo.getchannel("A").point(lambda a: round(a*.62)))
+                    radius *= .76
+                dx, dy = (bl[0] - tl[0]) * .045, (bl[1] - tl[1]) * .045
+                draw.line((x - dx * 1.6, y - dy * 1.6, x + dx * 1.6, y + dy * 1.6),
+                          fill=(*color, 230), width=max(1, round(2.5 * scale)))
+                draw.line((x - radius * .18, y - radius * 1.55, x + radius * .18, y + radius * 1.55),
+                          fill=(255, 255, 255, 200), width=max(1, round(1.4 * scale)))
+                draw.polygon([(x, y - radius), (x + radius * .15, y - radius * .15),
+                              (x + radius * .72, y), (x + radius * .15, y + radius * .15),
+                              (x, y + radius), (x - radius * .15, y + radius * .15),
+                              (x - radius * .72, y), (x - radius * .15, y - radius * .15)],
+                             fill=(255, 255, 255, 255))
+                draw.ellipse((x - 2.5 * scale, y - 2.5 * scale, x + 2.5 * scale, y + 2.5 * scale),
+                             fill=(255, 255, 255, 255))
+            # 五星底部与左沿点缀实机式棱彩小三角碎光。
+            if result.rarity >= 5:
+                for k in range(5):
+                    p = (phase * 7.3 + k * 0.23) % 1.0
+                    u = 0.08 + ((k * 0.21 + phase * 0.3) % 0.84)
+                    v = 0.84 + (p * 0.14)
+                    sx = tl[0] + (bl[0] - tl[0]) * v + (tr[0] - tl[0]) * u
+                    sy = tl[1] + (bl[1] - tl[1]) * v
+                    sz = (5 + (k % 3) * 2.5) * scale
+                    sc = shard_palette[k % len(shard_palette)]
+                    draw.polygon([(sx, sy - sz), (sx + sz * 0.85, sy + sz * 0.25),
+                                  (sx - sz * 0.55, sy + sz * 0.75)],
+                                 fill=(*sc, 235))
+            halo = layer.filter(ImageFilter.GaussianBlur(max(.5, 5 * scale)))
+            halo.putalpha(halo.getchannel("A").point(lambda a: round(a * .74)))
             layer = Image.alpha_composite(halo, layer)
             # 后面的卡片不能把闪光画到前方卡片上。
-            visible = Image.new("L",canvas.size,255)
+            visible = Image.new("L", canvas.size, 255)
             vd = ImageDraw.Draw(visible)
-            for front in geometries[index+1:]:
-                vd.polygon([(round(x*scale),round(y*scale)) for x,y in front.quad],fill=0)
-            layer.putalpha(ImageChops.multiply(layer.getchannel("A"),visible))
+            for front in geometries[index + 1:]:
+                vd.polygon([(round(x * scale), round(y * scale)) for x, y in front.quad], fill=0)
+            layer.putalpha(ImageChops.multiply(layer.getchannel("A"), visible))
+            canvas.alpha_composite(layer)
+
+    def _element_icon_images(self, element: str, size: int) -> tuple[Image.Image, ...]:
+        if not element:
+            return ()
+        cache = getattr(self, "_element_icon_cache", None)
+        if cache is None:
+            cache = self._element_icon_cache = {}
+        key = (element, size)
+        if key in cache:
+            return cache[key]
+        aliases = {"射击": "枪击"}
+        parts = [aliases.get(p.strip(), p.strip()) for p in element.split("/") if p.strip()]
+        box_size = size if len(parts) == 1 else max(10, round(size * 0.76))
+        icons = []
+        for name in parts[:2]:
+            path = self._runtime_asset(self.assets / "element_icons" / f"{name}.png")
+            if not path.is_file():
+                continue
+            source = self._source_art(path)
+            bounds = source.getchannel("A").getbbox()
+            if bounds:
+                source = source.crop(bounds)
+            icons.append(ImageOps.contain(source, (box_size, box_size), Image.Resampling.LANCZOS))
+        result = tuple(icons)
+        cache[key] = result
+        return result
+
+    def _codename_sticker(self, item: Item, rarity: int, max_width: float, scale: float) -> Image.Image | None:
+        """实机风格高星角色底部斜跃涂鸦代号（如 LEON / ANRI / J&C / AEGIS）。"""
+        raw = item.id.partition(":")[2] if ":" in item.id else item.name
+        code = raw.split("·", 1)[0].split("-", 1)[0].strip().upper()
+        if not code:
+            return None
+        font_size = max(14, round((30 if rarity >= 5 else 28) * scale))
+        probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
+        font = self.font(font_size, latin=True)
+        while font_size > 14 and probe.textlength(code, font=font) > max_width:
+            font_size -= 1
+            font = self.font(font_size, latin=True)
+        stroke = max(3, round(5 * scale))
+        bbox = probe.textbbox((0, 0), code, font=font, stroke_width=stroke)
+        tw = max(1, bbox[2] - bbox[0])
+        th = max(1, bbox[3] - bbox[1])
+        pad = stroke + max(6, round(8 * scale))
+        w, h = tw + pad * 2, th + pad * 2
+        tx, ty = pad - bbox[0], pad - bbox[1]
+
+        sticker = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        sd = ImageDraw.Draw(sticker)
+        # 硬投影 + 粗黑漫画描边
+        sd.text((tx + round(3 * scale), ty + round(3 * scale)), code, font=font,
+                fill=(4, 5, 10, 235), stroke_width=stroke, stroke_fill=(4, 5, 10, 235))
+        if rarity >= 5:
+            # 五星：冷白 -> 霓虹紫 -> 电青棱彩竖向渐变文字
+            sd.text((tx, ty), code, font=font, fill=(255, 255, 255, 255),
+                    stroke_width=stroke, stroke_fill=(8, 8, 16, 255))
+            text_mask = Image.new("L", (w, h), 0)
+            ImageDraw.Draw(text_mask).text((tx, ty), code, font=font, fill=255)
+            grad = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            gd = ImageDraw.Draw(grad)
+            stops = ((255, 250, 255), (204, 148, 255), (126, 224, 255))
+            for yy in range(pad, h - pad):
+                t = (yy - pad) / max(1, h - pad * 2)
+                if t < 0.55:
+                    k = t / 0.55
+                    c = tuple(round(stops[0][j] * (1 - k) + stops[1][j] * k) for j in range(3))
+                else:
+                    k = (t - 0.55) / 0.45
+                    c = tuple(round(stops[1][j] * (1 - k) + stops[2][j] * k) for j in range(3))
+                gd.line((0, yy, w, yy), fill=(*c, 255))
+            sticker.paste(grad, (0, 0), text_mask)
+        else:
+            # 四星：实机明金黄漫画字
+            sd.text((tx, ty), code, font=font, fill=(255, 226, 74, 255),
+                    stroke_width=stroke, stroke_fill=(8, 8, 14, 255))
+        return sticker.rotate(11, resample=Image.Resampling.BICUBIC, expand=True)
+
+    def _card_bottom_badges(self, canvas: Image.Image, geometries: Sequence[CardGeometry],
+                            results: Sequence[PullResult], scale: float) -> None:
+        """绘制实机式卡底属性徽标与高星斜跃代号；遵守前后卡遮挡关系。"""
+        for index, (geo, result) in enumerate(zip(geometries, results)):
+            tl, tr, br, bl = [(x * scale, y * scale) for x, y in geo.quad]
+            layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+            item = result.item
+
+            if result.rarity <= 3:
+                # 低星人格面具底部黑楔正中央放鲜明属性图标
+                icons = self._element_icon_images(item.element, max(18, round(34 * scale)))
+                if icons:
+                    cx = (bl[0] + br[0]) * 0.5 + 8 * scale
+                    cy = bl[1] + 2 * scale
+                    total_w = sum(ic.width for ic in icons) + max(0, len(icons) - 1) * round(3 * scale)
+                    ix = round(cx - total_w / 2)
+                    for ic in icons:
+                        layer.alpha_composite(ic, (ix, round(cy - ic.height / 2)))
+                        ix += ic.width + round(3 * scale)
+            elif item.kind in ("character", "char"):
+                # 四五星角色：底部斜跃涂鸦代号 + 底部属性图标
+                icons = self._element_icon_images(item.element, max(18, round(34 * scale)))
+                if icons:
+                    cx = bl[0] + (br[0] - bl[0]) * 0.58
+                    cy = bl[1] - 25 * scale
+                    total_w = sum(ic.width for ic in icons) + max(0, len(icons) - 1) * round(4 * scale)
+                    pad = round(6 * scale)
+                    # 轻微深色衬底，保证属性图标在亮色服饰上也清晰
+                    bg_r = max(ic.height for ic in icons) // 2 + pad
+                    ld = ImageDraw.Draw(layer)
+                    ld.rounded_rectangle((cx - total_w / 2 - pad, cy - bg_r,
+                                          cx + total_w / 2 + pad, cy + bg_r),
+                                         radius=bg_r, fill=(6, 7, 14, 185))
+                    ix = round(cx - total_w / 2)
+                    for ic in icons:
+                        layer.alpha_composite(ic, (ix, round(cy - ic.height / 2)))
+                        ix += ic.width + round(4 * scale)
+                sticker = self._codename_sticker(item, result.rarity, geo.width * scale * 0.94, scale)
+                if sticker is not None:
+                    sx = round(bl[0] + (br[0] - bl[0]) * 0.42 - sticker.width / 2)
+                    sy = round(bl[1] - 72 * scale - sticker.height / 2)
+                    layer.alpha_composite(sticker, (sx, sy))
+            else:
+                # 四五星武器：底部星级徽记
+                ld = ImageDraw.Draw(layer)
+                stars = "★" * min(5, result.rarity)
+                star_font = self.font(max(12, round(18 * scale)))
+                star_color = (224, 186, 255, 255) if result.rarity >= 5 else (255, 224, 96, 255)
+                cx = bl[0] + (br[0] - bl[0]) * 0.5
+                cy = bl[1] - 34 * scale
+                ld.text((cx, cy), stars, font=star_font, fill=star_color, anchor="mm",
+                        stroke_width=max(2, round(3 * scale)), stroke_fill=(6, 7, 14, 240))
+
+            # 后方卡片的底部标不能覆盖到前方卡片上
+            visible = Image.new("L", canvas.size, 255)
+            vd = ImageDraw.Draw(visible)
+            for front in geometries[index + 1:]:
+                vd.polygon([(round(x * scale), round(y * scale)) for x, y in front.quad], fill=0)
+            layer.putalpha(ImageChops.multiply(layer.getchannel("A"), visible))
             canvas.alpha_composite(layer)
 
     def _high_star_backlight(self, canvas, geometries, results, scale):
@@ -1169,6 +1335,19 @@ class Renderer:
         clip = Image.new("L", canvas.size)
         ImageDraw.Draw(clip).polygon(_polygon(quad), fill=255)
         source = self._source_art(path)
+        if kind == "persona":
+            # 提亮并微增属性底纹饱和度，贴近实机通透鲜明的红/蓝/绿/金底色。
+            ecache = getattr(self, "_enhanced_strip_cache", None)
+            if ecache is None:
+                ecache = self._enhanced_strip_cache = {}
+            ekey = str(path)
+            if ekey not in ecache:
+                rgb = ImageEnhance.Color(source.convert("RGB")).enhance(1.22)
+                rgb = ImageEnhance.Brightness(rgb).enhance(1.16)
+                enhanced = rgb.convert("RGBA")
+                enhanced.putalpha(source.getchannel("A"))
+                ecache[ekey] = enhanced
+            source = ecache[ekey]
         if kind in ("character", "char") and rarity >= 5:
             if not hasattr(self, "_five_foundation_source"):
                 self._five_foundation_source = source.transform(
@@ -1225,6 +1404,9 @@ class Renderer:
         clip = Image.new("L", local_size)
         ImageDraw.Draw(clip).polygon(_polygon([tl,tr,br,bl]),fill=255)
         edge.putalpha(ImageChops.multiply(edge.getchannel("A"),clip))
+        glow = edge.filter(ImageFilter.GaussianBlur(max(1.0, 3.5 * scale)))
+        glow.putalpha(glow.getchannel("A").point(lambda a: round(a * 0.60)))
+        canvas.alpha_composite(glow,(x0,y0))
         canvas.alpha_composite(edge,(x0,y0))
 
     def _foundation_card(self, geometry: CardGeometry, scale: float, slot: int, rarity: int, element: str = "",
@@ -1580,9 +1762,8 @@ class Renderer:
         # 第一阶段只校准十个独立底版。高星仅决定居中次序、底色和辉光，不改变几何。
         arranged = self._centered_result_slots(list(results)[:count])
         geometry = [foundation_geometry(i, arranged[i].rarity, window=count) for i in range(count)]
-        # 左侧无描边，因此不能再让下一张向左压住前一张的右侧黑衬底。
-        # 保留窄缝，也为高低差造成的斜率差异留出安全距离。
-        border_overlap = -4.0
+        # 相邻色带紧密拼接，只留清晰的斜向黑分隔线，还原实机紧凑扇面节奏。
+        border_overlap = 0.0
         total_width = sum(item.width for item in geometry) - border_overlap * max(0, count - 1)
         cursor = (DESIGN_W - total_width - SLANT) / 2
         packed: list[CardGeometry] = []
@@ -1606,12 +1787,37 @@ class Renderer:
             canvas.alpha_composite(foundation, (int(fox), int(foy)))
             mask = Image.new("L", canvas.size, 0)
             points = [(int(px * scale), int(py * scale)) for px, py in geometry[i].quad]
-            ImageDraw.Draw(mask).polygon(points, fill=255)
+            if result.item.kind == "persona":
+                # 人格面具允许头顶、翅膀、角沿色带斜率自然破出卡顶，贴近实机观感。
+                pop = 56 * scale
+                tl, tr, br, bl = geometry[i].quad
+                slope = (tl[0] - bl[0]) / max(1.0, bl[1] - tl[1])
+                clip_pts = [
+                    (int((tl[0] + slope * pop / scale) * scale), max(0, int(tl[1] * scale - pop))),
+                    (int((tr[0] + slope * pop / scale) * scale), max(0, int(tr[1] * scale - pop))),
+                    points[2],
+                    points[3],
+                ]
+            else:
+                clip_pts = points
+            ImageDraw.Draw(mask).polygon(clip_pts, fill=255)
             content = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
             layer = self.art_layer(result, geometry[i], scale, slot=i)
             if layer is not None:
                 art, (ax, ay) = layer
                 content.alpha_composite(art, (int(ax), int(ay)))
+            # 卡底压暗渐变（通过独立层 alpha 合成，不破坏立绘透明通道），衬托底部代号与属性图标。
+            fade_h = max(1, round(geometry[i].height * scale * 0.22))
+            fy0 = int(geometry[i].quad[3][1] * scale) - fade_h
+            fy1 = int(geometry[i].quad[3][1] * scale)
+            fx0 = max(0, min(p[0] for p in points) - 4)
+            fx1 = min(canvas.width, max(p[0] for p in points) + 4)
+            fade_layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+            fd = ImageDraw.Draw(fade_layer)
+            for yy in range(max(0, fy0), min(canvas.height, fy1), 2):
+                t = (yy - fy0) / fade_h
+                fd.rectangle((fx0, yy, fx1, yy + 2), fill=(4, 5, 10, round(140 * (t ** 1.5))))
+            content.alpha_composite(fade_layer)
             canvas.alpha_composite(Image.composite(content, Image.new("RGBA", canvas.size), mask))
             if result.rarity in (2, 3):
                 ImageDraw.Draw(canvas).polygon(self._low_star_foot(geometry[i], scale),
@@ -1622,8 +1828,9 @@ class Renderer:
         # 光效已在卡片背后绘制，前层只保留原生品质框与黑分隔。
         self._draw_separators(canvas, geometry, scale, [result.rarity for result in arranged])
         for geo, result in zip(geometry, arranged):
-            if result.item.kind in ("character", "char"):
+            if result.rarity >= 4 and result.item.kind in ("character", "char", "weapon"):
                 self._character_frame(canvas, geo, result.rarity, scale)
+        self._card_bottom_badges(canvas, geometry, arranged, scale)
         self._edge_sparkles(canvas, geometry, arranged, scale)
         self._blue_cutlines(canvas)
         if show_new:
@@ -1713,13 +1920,23 @@ class Renderer:
             content = Image.new("RGBA",canvas.size)
             content.alpha_composite(art,(int(ax),int(ay)))
             mask = Image.new("L",canvas.size)
-            ImageDraw.Draw(mask).polygon(shifted.quad,fill=255)
+            if result.item.kind == "persona":
+                pop = 56
+                tl, tr, br, bl = shifted.quad
+                slope = (tl[0] - bl[0]) / max(1.0, bl[1] - tl[1])
+                clip_pts = [(tl[0] + slope * pop, max(0, tl[1] - pop)),
+                            (tr[0] + slope * pop, max(0, tr[1] - pop)), br, bl]
+            else:
+                clip_pts = shifted.quad
+            ImageDraw.Draw(mask).polygon(clip_pts,fill=255)
             canvas.alpha_composite(Image.composite(content,Image.new("RGBA",canvas.size),mask))
         if result.rarity in (2, 3):
             ImageDraw.Draw(canvas).polygon(self._low_star_foot(shifted, 1), fill=(2, 2, 4, 255))
         self._draw_separators(canvas, [shifted], 1, [result.rarity])
-        if result.item.kind in ("character", "char"):
+        if result.rarity >= 4 and result.item.kind in ("character", "char", "weapon"):
             self._character_frame(canvas, shifted, result.rarity)
+        if result.rarity <= 3:
+            self._card_bottom_badges(canvas, [shifted], [result], 1)
         self._edge_sparkles(canvas, [shifted], [result], 1)
         self._blue_cutlines(canvas)
         if result.is_new:

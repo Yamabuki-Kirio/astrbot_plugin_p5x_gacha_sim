@@ -162,19 +162,44 @@ def test_same_item_across_service_connections_has_no_lost_copies_or_rewards(env)
     finally:other.close()
 
 
-def test_team_grouping_preserves_all_items_and_adjacent_special_weapons(env):
+def test_team_grouping_attaches_best_weapon_to_character_cards(env):
     r,_,_=env
     entries=tuple(OwnedItem(i,7 if n%3==0 else 1) for n,i in enumerate(r.items.values()) if collectible(i))
     rows=team_rows(entries); pages=team_pages(entries)
-    assert {e.item.id for row in rows for e in row}=={e.item.id for e in entries}
-    assert len([e for row in rows for e in row])==len(entries)
-    positions={e.item.id:(n,col) for n,row in enumerate(rows) for col,e in enumerate(row)}
-    for entry in entries:
-        if entry.item.id.startswith('weapon:') and entry.owner in positions:
-            assert positions[entry.owner][0]==positions[entry.item.id][0]
-            assert positions[entry.owner][1]<positions[entry.item.id][1]
+    chars=[e for e in entries if e.item.id.startswith('char:')]
+    slots=[s for row in rows for s in row]
+    assert {s.item.id for s in slots}=={e.item.id for e in chars}
+    assert len(slots)==len(chars)
+    assert all(s.item.id.startswith('char:') for s in slots)
+    weapons_by_owner={}
+    for e in entries:
+        if e.item.id.startswith('weapon:'):
+            prev=weapons_by_owner.get(e.owner)
+            if prev is None or (e.item.rarity,e.copies,e.item.id)>(prev.item.rarity,prev.copies,prev.item.id):
+                weapons_by_owner[e.owner]=e
+    for slot in slots:
+        assert slot.weapon==weapons_by_owner.get(slot.owner)
     assert all(len(row)<=6 for row in rows) and all(len(page)<=4 for page in pages)
     assert tuple(row for page in pages for row in page)==rows
+
+
+def test_combined_pool_weapon_prioritizes_owned_characters(env):
+    r,store,s=env
+    banner=r.banner('all_limited')
+    assert any(i.id.startswith('char:') for i in banner.candidates(5))
+    assert any(i.id.startswith('weapon:') for i in banner.candidates(5))
+    aigis=r.item('char:AEGIS')
+    store.add_owned('qq','u',aigis)
+    from src.core.mechanics import GachaMechanics
+    class ForceFiveWeapon:
+        def __init__(self): self.calls=0
+        def random(self):
+            self.calls+=1
+            return 0.0 if self.calls%2==1 else 0.1
+        def choice(self,seq): return seq[0]
+    s.mechanics=GachaMechanics(ForceFiveWeapon())
+    out=s.draw('qq','u',banner,1)
+    assert out.results[0].item.id.startswith('weapon:AEGIS-')
 
 
 def test_team_render_max_effect_and_empty_collection(env):

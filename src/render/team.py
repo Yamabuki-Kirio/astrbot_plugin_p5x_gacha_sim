@@ -1,5 +1,6 @@
-"""Team collection posters with adjacent owner/weapon groups and capped progress."""
-from collections import defaultdict
+"""Team collection posters: character cards with attached weapon evolution & max-consciousness FX."""
+from dataclasses import dataclass
+import hashlib
 import io
 import math
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageOps
@@ -19,36 +20,76 @@ CARD_GAP = 15
 HEADER_H = 152
 FOOTER_H = 74
 
+
+@dataclass(frozen=True)
+class TeamSlot:
+    """A character card in the team poster, optionally carrying its best owned weapon."""
+
+    character: object
+    weapon: object = None
+
+    @property
+    def item(self):
+        return self.character.item
+
+    @property
+    def copies(self):
+        return self.character.copies
+
+    @property
+    def level(self):
+        return self.character.level
+
+    @property
+    def maxed(self):
+        return self.character.maxed
+
+    @property
+    def label(self):
+        return self.character.label
+
+    @property
+    def owner(self):
+        return self.character.owner
+
+
 def team_rows(entries):
-    groups = defaultdict(list)
+    """Show only owned characters; attach each character's highest-tier owned weapon to its card."""
+    best_weapon = {}
+    characters = []
     for entry in entries:
-        groups[entry.owner].append(entry)
-    def group_key(pair):
-        owner, group = pair
-        character = next((e for e in group if e.item.id.startswith('char:')), None)
-        return (character is None, -(character.item.rarity if character else max(e.item.rarity for e in group)),
-                character.item.name if character else owner)
-    rows, row = [], []
-    for owner, group in sorted(groups.items(), key=group_key):
-        group.sort(key=lambda e:(not e.item.id.startswith('char:'), -e.item.rarity, e.item.name, e.item.id))
-        if row and len(row) + len(group) > COLUMNS:
-            rows.append(tuple(row))
-            row = []
-        while len(group) > COLUMNS:
-            rows.append(tuple(group[:COLUMNS]))
-            group = group[COLUMNS:]
-        row.extend(group)
-        if len(row) == COLUMNS:
-            rows.append(tuple(row))
-            row = []
-    if row:
-        rows.append(tuple(row))
-    return tuple(rows)
+        if isinstance(entry, TeamSlot):
+            characters.append(entry)
+            continue
+        if entry.item.id.startswith('char:'):
+            characters.append(entry)
+        elif entry.item.id.startswith('weapon:'):
+            prev = best_weapon.get(entry.owner)
+            key = (entry.item.rarity, entry.copies, entry.item.id)
+            prev_key = (prev.item.rarity, prev.copies, prev.item.id) if prev else None
+            if prev_key is None or key > prev_key:
+                best_weapon[entry.owner] = entry
+
+    slots = []
+    for entry in characters:
+        if isinstance(entry, TeamSlot):
+            slots.append(entry)
+        else:
+            slots.append(TeamSlot(character=entry, weapon=best_weapon.get(entry.owner)))
+
+    slots.sort(key=lambda s: (
+        -s.item.rarity,
+        -s.level,
+        -(s.weapon.level if s.weapon else -1),
+        s.item.name,
+        s.item.id,
+    ))
+    return tuple(tuple(slots[n:n + COLUMNS]) for n in range(0, len(slots), COLUMNS))
 
 
 def team_pages(entries):
     rows = team_rows(entries)
-    return tuple(rows[n:n+ROWS_PER_PAGE] for n in range(0,len(rows),ROWS_PER_PAGE)) or ((),)
+    return tuple(rows[n:n + ROWS_PER_PAGE] for n in range(0, len(rows), ROWS_PER_PAGE)) or ((),)
 
 
 def _spark(draw, x, y, radius, color):
@@ -300,6 +341,113 @@ def _cover_art(renderer, item, size):
     return _fit_layer(art, size, (.5, .20), 1.05)
 
 
+def _draw_cross_flare(layer, x, y, radius, tint):
+    """Draw a radiant 4-point diamond cross flare with tinted bloom + pure-white core."""
+    glow = Image.new('RGBA', layer.size, (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    gd.ellipse((x - radius * 0.55, y - radius * 0.55, x + radius * 0.55, y + radius * 0.55),
+               fill=(*tint, 175))
+    gd.line((x - radius * 1.15, y, x + radius * 1.15, y), fill=(*tint, 210), width=max(2, round(radius * 0.14)))
+    gd.line((x, y - radius * 1.35, x, y + radius * 1.35), fill=(*tint, 210), width=max(2, round(radius * 0.14)))
+    layer.alpha_composite(glow.filter(ImageFilter.GaussianBlur(max(2, round(radius * 0.28)))))
+    d = ImageDraw.Draw(layer)
+    d.polygon([
+        (x, y - radius * 1.25), (x + radius * 0.14, y - radius * 0.14),
+        (x + radius * 0.95, y), (x + radius * 0.14, y + radius * 0.14),
+        (x, y + radius * 1.25), (x - radius * 0.14, y + radius * 0.14),
+        (x - radius * 0.95, y), (x - radius * 0.14, y - radius * 0.14),
+    ], fill=(255, 255, 255, 250))
+    d.ellipse((x - 3, y - 3, x + 3, y + 3), fill=(255, 255, 255, 255))
+
+
+def _max_consciousness_fx(size, art_quad, item_id):
+    """Holographic aurora glow, diagonal sheen, stardust & cross flares for Consciousness 6 (Lv100)."""
+    tl, tr, br, bl = art_quad
+    art_h = bl[1] - tl[1]
+    clip = Image.new('L', size, 0)
+    ImageDraw.Draw(clip).polygon(art_quad, fill=255)
+
+    fx = Image.new('RGBA', size, (0, 0, 0, 0))
+    # 1. Dreamy bottom prismatic aurora bloom (cyan -> lavender -> magenta rising from footer)
+    aurora = Image.new('RGBA', size, (0, 0, 0, 0))
+    ad = ImageDraw.Draw(aurora)
+    cx_bot = (bl[0] + br[0]) * 0.5
+    by = bl[1]
+    ad.ellipse((cx_bot - 175, by - 165, cx_bot + 55, by + 65), fill=(68, 224, 255, 92))
+    ad.ellipse((cx_bot - 110, by - 210, cx_bot + 130, by + 50), fill=(176, 118, 255, 96))
+    ad.ellipse((cx_bot - 25, by - 145, cx_bot + 185, by + 65), fill=(255, 130, 234, 72))
+    # Soft upper-left cool cyan shimmer accent
+    ad.ellipse((tl[0] - 50, tl[1] + 40, tl[0] + 130, tl[1] + 290), fill=(104, 212, 255, 42))
+    fx.alpha_composite(aurora.filter(ImageFilter.GaussianBlur(42)))
+
+    # 2. Diagonal holographic sheen streaks parallel to the slanted card walls
+    sheen = Image.new('RGBA', size, (0, 0, 0, 0))
+    sd = ImageDraw.Draw(sheen)
+    for frac, width, col in ((0.18, 28, (118, 232, 255, 34)),
+                             (0.54, 42, (214, 158, 255, 30)),
+                             (0.82, 22, (255, 176, 242, 28))):
+        top_x = tl[0] + (tr[0] - tl[0]) * frac
+        bot_x = bl[0] + (br[0] - bl[0]) * frac
+        mid_y = tl[1] + art_h * 0.36
+        mid_x = top_x + (bot_x - top_x) * 0.36
+        sd.polygon([(mid_x - width / 2, mid_y), (mid_x + width / 2, mid_y),
+                    (bot_x + width / 2, by), (bot_x - width / 2, by)], fill=col)
+    fx.alpha_composite(sheen.filter(ImageFilter.GaussianBlur(14)))
+
+    # 3. Deterministic floating stardust particles + luminous cross flares
+    digest = hashlib.sha256(f'max6:{item_id}'.encode('utf-8')).digest()
+    dust = Image.new('RGBA', size, (0, 0, 0, 0))
+    dd = ImageDraw.Draw(dust)
+    palette = ((255, 255, 255), (146, 238, 255), (218, 168, 255), (255, 178, 242))
+    for k in range(14):
+        u = 0.08 + (digest[k % len(digest)] / 255.0) * 0.84
+        v = 0.42 + (digest[(k * 3 + 5) % len(digest)] / 255.0) * 0.54
+        px = tl[0] + (bl[0] - tl[0]) * v + (tr[0] - tl[0]) * u
+        py = tl[1] + art_h * v
+        r = 1.6 + (k % 4) * 0.85
+        c = palette[k % len(palette)]
+        dd.ellipse((px - r * 2.2, py - r * 2.2, px + r * 2.2, py + r * 2.2), fill=(*c, 85))
+        dd.ellipse((px - r, py - r, px + r, py + r), fill=(*c, 245))
+    fx.alpha_composite(dust.filter(ImageFilter.GaussianBlur(1.0)))
+    fx.alpha_composite(dust)
+
+    # Prominent internal lower-mid cross flare (just like the real Lv100 Futaba card!) + edge sparkles
+    p0 = digest[0] / 255.0
+    p1 = digest[1] / 255.0
+    for u, v, rad, tint in (
+        (0.28 + p0 * 0.44, 0.72 + p1 * 0.16, 26, (124, 232, 255)),
+        (0.06, 0.24 + p0 * 0.22, 22, (206, 152, 255)),
+        (0.84 - p1 * 0.22, 0.90, 18, (255, 162, 238)),
+    ):
+        sx = tl[0] + (bl[0] - tl[0]) * v + (tr[0] - tl[0]) * u
+        sy = tl[1] + art_h * v
+        _draw_cross_flare(fx, sx, sy, rad, tint)
+
+    fx.putalpha(ImageChops.multiply(fx.getchannel('A'), clip))
+    return fx
+
+
+def _draw_prismatic_divider(card, x0, x1, y):
+    """Draw a glowing cyan -> lavender -> magenta divider line for Consciousness 6 cards."""
+    bar = Image.new('RGBA', card.size, (0, 0, 0, 0))
+    bd = ImageDraw.Draw(bar)
+    stops = ((108, 232, 255), (198, 146, 255), (255, 158, 236))
+    steps = 36
+    for i in range(steps):
+        t0, t1 = i / steps, (i + 1) / steps
+        tm = (t0 + t1) * 0.5
+        if tm < 0.5:
+            k = tm * 2
+            c = tuple(round(stops[0][j] * (1 - k) + stops[1][j] * k) for j in range(3))
+        else:
+            k = (tm - 0.5) * 2
+            c = tuple(round(stops[1][j] * (1 - k) + stops[2][j] * k) for j in range(3))
+        bd.line([(x0 + (x1 - x0) * t0, y), (x0 + (x1 - x0) * t1, y)], fill=(*c, 255), width=5)
+    glow = bar.filter(ImageFilter.GaussianBlur(4))
+    card.alpha_composite(glow)
+    card.alpha_composite(bar)
+
+
 def _team_card(renderer, entry, registry):
     card_w = CARD_BODY_W + CARD_SKEW
     quad = ((CARD_SKEW, 0), (card_w, 0), (CARD_BODY_W, CARD_H), (0, CARD_H))
@@ -308,9 +456,13 @@ def _team_card(renderer, entry, registry):
     card = Image.new('RGBA', (card_w, CARD_H), (0, 0, 0, 0))
 
     art_area_h = CARD_H - 104
+    footer_y = CARD_H - 104
+    art_quad = (quad[0], quad[1], (CARD_BODY_W + 25, footer_y), (25, footer_y))
     is_char = entry.item.id.startswith('char:')
+    weapon_entry = getattr(entry, 'weapon', None)
+
     if is_char:
-        top_rgb, bot_rgb = (39, 43, 61), (19, 21, 31)
+        top_rgb, bot_rgb = ((44, 48, 76), (22, 24, 42)) if entry.maxed else ((39, 43, 61), (19, 21, 31))
     elif entry.item.rarity >= 5:
         top_rgb, bot_rgb = (44, 34, 78), (15, 13, 30)
     else:
@@ -325,36 +477,49 @@ def _team_card(renderer, entry, registry):
     art = _cover_art(renderer, entry.item, (card_w, CARD_H))
     if art:
         background.alpha_composite(art, (0, 0))
+    if is_char and entry.maxed:
+        background.alpha_composite(_max_consciousness_fx(card.size, art_quad, entry.item.id))
     card.alpha_composite(Image.composite(background, Image.new('RGBA', card.size), mask))
 
-    footer_y = CARD_H - 104
     overlay = Image.new('RGBA', card.size, (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
     od.polygon([(25, footer_y), (CARD_BODY_W + 25, footer_y), (CARD_BODY_W, CARD_H), (0, CARD_H)],
                fill=(5, 5, 7, 255))
-    divider_color = ((224, 184, 255) if entry.item.rarity >= 5 else (255, 224, 128)) if entry.maxed else 'white'
-    od.line([(25, footer_y), (CARD_BODY_W + 25, footer_y)], fill=divider_color, width=4)
+    if not (is_char and entry.maxed):
+        od.line([(25, footer_y), (CARD_BODY_W + 25, footer_y)], fill='white', width=4)
     card.alpha_composite(overlay)
+    if is_char and entry.maxed:
+        _draw_prismatic_divider(card, 25, CARD_BODY_W + 25, footer_y)
 
     owner = _owner_character(entry.item, registry)
-    icon_x = 24
-    for icon in _element_icons(renderer, owner, size=50):
-        card.alpha_composite(icon, (icon_x, footer_y + 9 + (50 - icon.height) // 2))
+    icon_x = 22
+    for icon in _element_icons(renderer, owner, size=46):
+        card.alpha_composite(icon, (icon_x, footer_y + 9 + (46 - icon.height) // 2))
         icon_x += icon.width + 4
-    progress = _progress_icon(renderer, entry, size=60)
-    card.alpha_composite(progress, (CARD_BODY_W - 65, footer_y + 4))
+
+    # 右下：意识星标居右；若角色拥有对应武器，紧贴左侧并排显示武器进化徽标（对齐游戏实机布局）。
+    progress = _progress_icon(renderer, entry, size=54)
+    prog_x = CARD_BODY_W - 58 + (54 - progress.width) // 2
+    prog_y = footer_y + 5 + (54 - progress.height) // 2
+    card.alpha_composite(progress, (prog_x, prog_y))
+    if weapon_entry is not None:
+        w_icon = _progress_icon(renderer, weapon_entry, size=48)
+        wx = CARD_BODY_W - 112 + (48 - w_icon.width) // 2
+        wy = footer_y + 8 + (48 - w_icon.height) // 2
+        card.alpha_composite(w_icon, (wx, wy))
 
     draw = ImageDraw.Draw(card)
     level = 100 if entry.maxed else 80
-    level_color = (255, 224, 120) if entry.maxed else 'white'
+    level_color = (255, 228, 126) if entry.maxed else 'white'
     draw.text((16, CARD_H - 13), entry.item.name,
               font=_fit_text(renderer, draw, entry.item.name, CARD_BODY_W - 108, 22), anchor='lb', fill='white')
     draw.text((CARD_BODY_W - 8, CARD_H - 12), f'Lv{level}', font=renderer.font(24, latin=True),
               anchor='rb', fill=level_color)
     draw.line(list(quad) + [quad[0]], fill=(5, 5, 7, 255), width=7)
-    art_quad = (quad[0], quad[1], (CARD_BODY_W + 25, footer_y), (25, footer_y))
     if is_char and entry.item.rarity in (4, 5):
         renderer._character_frame(card, CardGeometry(art_quad, CARD_BODY_W, footer_y), entry.item.rarity)
+        if entry.maxed:
+            _weapon_frame(card, art_quad, 5)
     elif not is_char and entry.item.rarity in (4, 5):
         _weapon_frame(card, art_quad, entry.item.rarity)
     return card

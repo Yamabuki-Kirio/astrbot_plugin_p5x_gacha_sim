@@ -100,6 +100,19 @@ class GachaMechanics:
                 return self.rng.choice(matching)
         return self.rng.choice(list(weapons))
 
+    def pick_bonus_weapon(
+        self,
+        banner: Banner,
+        owned_chars: set[str] | None = None,
+        owned_copies: dict[str, int] | None = None,
+    ) -> Item | None:
+        """综合池出 5★ 角色时同步抽取一把 5★ 武器（优先已拥有角色且未满阶）。"""
+        weapons5 = [i for i in banner.candidates(5) if i.id.startswith("weapon:")]
+        chars5 = [i for i in banner.candidates(5) if i.id.startswith("char:")]
+        if not weapons5 or not chars5 or banner.ups(5):
+            return None
+        return self._pick_weapon(weapons5, owned_chars, owned_copies)
+
     def _choose(
         self,
         banner: Banner,
@@ -124,7 +137,10 @@ class GachaMechanics:
                 chars = [i for i in pool_items if i.id.startswith("char:")]
                 weapons = [i for i in pool_items if i.id.startswith("weapon:")]
                 if chars and weapons:
-                    # 综合池：同时含角色与武器；已有可配对角色时 50/50 平衡，无已有角色时偏向角色。
+                    if rarity == 5:
+                        # 综合池 5★ 主掉落固定为限定角色，同时由服务层同步附赠一把 5★ 武器（共享出金概率）。
+                        return self.rng.choice(chars), False, guaranteed
+                    # 4★ 综合池：同时含角色与武器；已有可配对角色时 50/50 平衡，无已有角色时偏向角色。
                     has_owned_weapon = bool(owned_chars and any(owner_id(w) in owned_chars for w in weapons))
                     weapon_prob = 0.50 if (owned_chars is None or has_owned_weapon) else 0.20
                     if self.rng.random() < weapon_prob:

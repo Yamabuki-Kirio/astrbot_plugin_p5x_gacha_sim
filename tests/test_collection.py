@@ -183,7 +183,7 @@ def test_team_grouping_attaches_best_weapon_to_character_cards(env):
     assert tuple(row for page in pages for row in page)==rows
 
 
-def test_combined_pool_weapon_prioritizes_owned_characters(env):
+def test_combined_pool_grants_sync_bonus_weapon_for_owned_characters(env):
     r,store,s=env
     banner=r.banner('all_limited')
     assert any(i.id.startswith('char:') for i in banner.candidates(5))
@@ -191,15 +191,29 @@ def test_combined_pool_weapon_prioritizes_owned_characters(env):
     aigis=r.item('char:AEGIS')
     store.add_owned('qq','u',aigis)
     from src.core.mechanics import GachaMechanics
-    class ForceFiveWeapon:
+    class FirstFiveThenLow:
         def __init__(self): self.calls=0
         def random(self):
             self.calls+=1
-            return 0.0 if self.calls%2==1 else 0.1
+            return 0.0 if self.calls==1 else 0.99
         def choice(self,seq): return seq[0]
-    s.mechanics=GachaMechanics(ForceFiveWeapon())
-    out=s.draw('qq','u',banner,1)
-    assert out.results[0].item.id.startswith('weapon:AEGIS-')
+    s.mechanics=GachaMechanics(FirstFiveThenLow())
+    out=s.draw('qq','u',banner,10)
+    assert len(out.results)==10 and s.quota_of('qq','u').used==10
+    assert out.results[0].rarity==5 and out.results[0].item.id.startswith('char:')
+    assert len(out.bonus_weapons)==1
+    bonus=out.bonus_weapons[0]
+    assert bonus.rarity==5 and bonus.item.id.startswith('weapon:')
+    # 同步附赠的 5★ 武器优先来自玩家已拥有角色（包含本次新抽到的角色或原本拥有的 AEGIS）
+    owned_owners={aigis.id, out.results[0].item.id}
+    from src.core.collection import owner_id
+    assert owner_id(bonus.item) in owned_owners
+    # 同步武器已入队并可融入十连结果展示（不增卡槽数）
+    owned_ids={e.item.id for e in s.team_of('qq','u')}
+    assert bonus.item.id in owned_ids
+    display,unrendered=out.display_results()
+    assert len(display)==10 and not unrendered
+    assert any(x.item.id==bonus.item.id for x in display)
 
 
 def test_team_render_max_effect_and_empty_collection(env):

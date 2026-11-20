@@ -154,7 +154,7 @@ class Registry:
                 rate_up={},
                 selector_at=None,
                 enabled=True,
-                note="含全部限定角色与限定专武，抽中武器时优先匹配已拥有角色",
+                note="含全部限定角色与限定专武：每次出 5★ 角色时同步额外抽一把 5★ 武器（优先已拥有角色）",
             )
             mixed.validate()
             self.banners[mixed.id] = mixed

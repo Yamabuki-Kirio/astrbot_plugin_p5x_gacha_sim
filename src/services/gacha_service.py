@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import threading
 import time
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone, timedelta
 
 from ..core.mechanics import GachaMechanics, PullResult
@@ -39,6 +39,7 @@ class DrawOutcome:
     elapsed_ms: int
     remaining: int = 0
     overflow_bonus: int = 0
+    bonus_weapons: list[PullResult] = field(default_factory=list)
 
     @property
     def five_stars(self) -> list[PullResult]:
@@ -47,6 +48,26 @@ class DrawOutcome:
     @property
     def four_stars(self) -> list[PullResult]:
         return [r for r in self.results if r.rarity == 4]
+
+    def display_results(self) -> tuple[list[PullResult], list[PullResult]]:
+        """把同步附赠的 5★ 武器融入多连结果卡面（替换同行低星填充位），返回 (用于出图的列表, 未能放入卡面的附赠武器)。"""
+        display = list(self.results)
+        unrendered: list[PullResult] = []
+        if not self.bonus_weapons:
+            return display, unrendered
+        if len(display) <= 1:
+            return display, list(self.bonus_weapons)
+        for bonus in self.bonus_weapons:
+            row_start = ((max(1, bonus.index) - 1) // 10) * 10
+            row_end = min(len(display), row_start + 10)
+            slot = next((i for i in range(row_end - 1, row_start - 1, -1) if display[i].rarity <= 3), None)
+            if slot is None:
+                slot = next((i for i in range(len(display) - 1, -1, -1) if display[i].rarity <= 3), None)
+            if slot is not None:
+                display[slot] = bonus
+            else:
+                unrendered.append(bonus)
+        return display, unrendered
 
 
 class GachaService:
@@ -105,15 +126,43 @@ class GachaService:
                 if collectible(result.item) and result.item.id.startswith('char:') and result.item.id not in seen:
                     results[index] = replace(result, is_new=True)
                     seen.add(result.item.id)
+            bonus_weapons: list[PullResult] = []
+            pick_bonus = getattr(self.mechanics, "pick_bonus_weapon", None)
+            if callable(pick_bonus):
+                live_chars = set(owned_chars)
+                live_copies = dict(owned_copies)
+                for result in results:
+                    live_copies[result.item.id] = live_copies.get(result.item.id, 0) + 1
+                    if result.item.id.startswith('char:'):
+                        live_chars.add(result.item.id)
+                    if result.rarity == 5 and result.item.id.startswith('char:'):
+                        bonus_item = pick_bonus(banner, live_chars, live_copies)
+                        if bonus_item is not None:
+                            is_new = bonus_item.id not in seen
+                            if is_new:
+                                seen.add(bonus_item.id)
+                            live_copies[bonus_item.id] = live_copies.get(bonus_item.id, 0) + 1
+                            bonus_weapons.append(
+                                PullResult(
+                                    item=bonus_item,
+                                    rarity=5,
+                                    is_up=False,
+                                    index=result.index,
+                                    pity5_after=result.pity5_after,
+                                    pity4_after=result.pity4_after,
+                                    is_new=is_new,
+                                )
+                            )
+            all_granted = results + bonus_weapons
             self.store.save_state(platform_id, user_id, banner.pity_group, new_state)
             if self.record_history:
                 self.store.add_history(
                     platform_id,
                     user_id,
                     banner.id,
-                    [(r.item.id, r.item.name, r.rarity, r.is_up) for r in results if collectible(r.item)],
+                    [(r.item.id, r.item.name, r.rarity, r.is_up) for r in all_granted if collectible(r.item)],
                 )
-            overflow_bonus = sum(self.store.add_owned(platform_id, user_id, r.item) for r in results) * 10
+            overflow_bonus = sum(self.store.add_owned(platform_id, user_id, r.item) for r in all_granted) * 10
             self.store.save_daily(platform_id, user_id, quota.day, quota.used + count,
                                   quota.bonus + overflow_bonus, quota.signed)
         return DrawOutcome(
@@ -124,6 +173,7 @@ class GachaService:
             elapsed_ms=int((time.perf_counter() - started) * 1000),
             remaining=quota.remaining-count+overflow_bonus,
             overflow_bonus=overflow_bonus,
+            bonus_weapons=bonus_weapons,
         )
 
     # ------------------------------------------------------------------
@@ -192,11 +242,20 @@ class GachaService:
             parts.append(" · UP")
         return "".join(parts)
 
+    @staticmethod
+    def format_bonus_names(weapons: list[PullResult]) -> str:
+        counts: dict[str, int] = {}
+        for w in weapons:
+            counts[w.item.name] = counts.get(w.item.name, 0) + 1
+        return "、".join(f"{name} ×{n}" if n > 1 else name for name, n in counts.items())
+
     def format_ten(self, outcome: DrawOutcome) -> str:
         label = {10: "十连", 20: "二十连", 30: "三十连", 40: "四十连"}.get(len(outcome.results), f"{len(outcome.results)}抽")
         lines = [f"【{outcome.banner.name}】{label}结果"]
         for index, result in enumerate(outcome.results, 1):
             lines.append(f"{index:>2}. {self.format_result_line(result)}")
+        if outcome.bonus_weapons:
+            lines.append(f"🎁 出金同步附赠 5★ 武器：{self.format_bonus_names(outcome.bonus_weapons)}")
         lines.append(
             f"—— 5★ ×{len(outcome.five_stars)} · 4★ ×{len(outcome.four_stars)} · 消耗 {outcome.cost} 晶珀"
         )
@@ -207,10 +266,15 @@ class GachaService:
 
     def format_single(self, outcome: DrawOutcome) -> str:
         result = outcome.results[0]
+        bonus_lines = (
+            [f"🎁 出金同步附赠 5★ 武器：{self.format_bonus_names(outcome.bonus_weapons)}"]
+            if outcome.bonus_weapons else []
+        )
         return "\n".join(
             [
                 f"【{outcome.banner.name}】单抽结果",
                 self.format_result_line(result),
+                *bonus_lines,
                 f"—— 消耗 {outcome.cost} 晶珀",
                 self.format_pity_short(outcome.banner, outcome.state),
                 *([f"满阶重复返还 {outcome.overflow_bonus} 抽，已加入今日额度"] if outcome.overflow_bonus else []),

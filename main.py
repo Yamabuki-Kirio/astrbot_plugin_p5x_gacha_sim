@@ -41,8 +41,8 @@ HELP_TEXT = """P5X 模拟抽卡
 /抽卡次数           查看今日剩余抽数和签到状态
 /刷新               白名单管理员为所有已登记用户增加10抽
 /二十连、/三十连、/四十连 [角色名|卡池]  批量抽取
-/抽卡 [角色名|卡池]  抽完当前剩余额度，默认全UP+全武器综合池（武器优先已有角色）
-/十连 [角色名|别名]  默认抽全UP+全武器综合池，指定名字抽对应 UP 池
+/抽卡 [角色名|卡池]  抽完当前剩余额度，默认全限定综合池（出5★角色同步赠5★武器，优先已有角色）
+/十连 [角色名|别名]  默认全限定综合池（出5★同步赠5★武器），指定名字抽对应 UP 池
 /十连 全角色池       仅抽全限定角色池
 /十连 武器池         全限定武器池（优先已有角色专武）
 /十连 武器 <角色名|武器名>  指定武器 UP 池
@@ -433,6 +433,9 @@ class P5XGachaPlugin(Star):
         )
         if chain:
             yield event.chain_result(chain)
+            if outcome.bonus_weapons:
+                names = self.service.format_bonus_names(outcome.bonus_weapons)
+                yield event.plain_result(f"🎁 出金同步获得 5★ 武器：{names}（已收录至队伍）")
             if outcome.overflow_bonus:
                 yield event.plain_result(f"满阶重复返还 {outcome.overflow_bonus} 抽，已加入今日额度；当前剩余 {outcome.remaining} 抽。")
         else:
@@ -518,31 +521,43 @@ class P5XGachaPlugin(Star):
         total = self.store.total_pulls(self._platform(event), str(event.get_sender_id()))
         avatar = await asyncio.to_thread(avatar_bytes, event) if self.config.get("enable_rendering", True) else None
         footer = self._footer(banner, outcome.state, total, outcome.remaining)
+        display, unrendered = outcome.display_results()
         if count <= 10:
             chain = await self._render(lambda: self.renderer.render_ten(
-                outcome.results, banner, user_name=display_name(event), avatar=avatar, footer=footer))
+                display, banner, user_name=display_name(event), avatar=avatar, footer=footer))
             if chain:
                 yield event.chain_result(chain)
+                if unrendered:
+                    names = self.service.format_bonus_names(unrendered)
+                    yield event.plain_result(f"🎁 出金同步获得 5★ 武器：{names}（已收录至队伍）")
                 if outcome.overflow_bonus:
                     yield event.plain_result(f"满阶重复返还 {outcome.overflow_bonus} 抽，已加入今日额度；当前剩余 {outcome.remaining} 抽。")
             else:
                 yield event.plain_result(self.service.format_ten(outcome) + f"\n累计{total}抽 · 今日剩余 {outcome.remaining} 抽")
             return
-        summary = (f"{count}连抽 · 5★×{len(outcome.five_stars)} · 4★×{len(outcome.four_stars)}"
+        bonus_part = f" + 同步武器×{len(outcome.bonus_weapons)}" if outcome.bonus_weapons else ""
+        summary = (f"{count}连抽 · 5★×{len(outcome.five_stars)}{bonus_part} · 4★×{len(outcome.four_stars)}"
                    f" · 满阶返还{outcome.overflow_bonus}抽 · 全部结算值")
+        rendered_any = False
         for offset in range(0, count, 40):
-            batch = outcome.results[offset:offset + 40]
-            batch_summary = summary if count <= 40 else f"{summary} · 第{offset+1}—{offset+len(batch)}抽"
+            batch_display = display[offset:offset + 40]
+            batch_raw = outcome.results[offset:offset + 40]
+            batch_summary = summary if count <= 40 else f"{summary} · 第{offset+1}—{offset+len(batch_raw)}抽"
             chain = await self._render(lambda: self.renderer.render_multi(
-                batch, banner, user_name=display_name(event), avatar=avatar,
+                batch_display, banner, user_name=display_name(event), avatar=avatar,
                 footer=footer, summary=batch_summary))
             if chain:
+                rendered_any = True
                 yield event.chain_result(chain)
             else:
                 from dataclasses import replace
-                portion = replace(outcome, results=batch, cost=banner.cost * len(batch))
+                batch_bonuses = [w for w in outcome.bonus_weapons if offset < w.index <= offset + len(batch_raw)]
+                portion = replace(outcome, results=batch_raw, bonus_weapons=batch_bonuses, cost=banner.cost * len(batch_raw))
                 yield event.plain_result(self.service.format_ten(portion)
                                          + f"\n累计{total}抽 · 今日剩余 {outcome.remaining} 抽")
+        if rendered_any and unrendered:
+            names = self.service.format_bonus_names(unrendered)
+            yield event.plain_result(f"🎁 出金同步获得 5★ 武器：{names}（已收录至队伍）")
 
     @p5x_group.command("保底", priority=1)
     async def cmd_pity(self, event: AstrMessageEvent, target: str = ""):

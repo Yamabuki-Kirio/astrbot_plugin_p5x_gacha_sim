@@ -237,7 +237,7 @@ def test_overflow_notice_and_remaining_in_image_path(plugin,monkeypatch):
     monkeypatch.setattr(plugin.renderer,'render_ten',lambda *a,**kw:captured.update(kw))
     async def image(factory):factory(); return ['image']
     monkeypatch.setattr(plugin,'_render',image)
-    result=run(plugin.direct_ten(Event('/十连')))
+    result=run(plugin.direct_ten(Event('/十连 全角色池')))
     assert result[0]==['image']
     assert '返还 100 抽' in result[1] and '剩余 100 抽' in result[1]
     assert '今日剩余100抽' in captured['footer']

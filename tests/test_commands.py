@@ -196,7 +196,7 @@ def test_team_command_empty_text_image_and_page_validation(plugin,monkeypatch):
     assert len(images)==1 and len(images[0])==1
     from PIL import Image
     import io
-    with Image.open(io.BytesIO(images[0][0])) as image:assert image.size==(1440,740)
+    with Image.open(io.BytesIO(images[0][0])) as image:assert image.size==(1920,1306)
 
 
 def test_team_command_lists_every_owned_card_and_keeps_groups(plugin,monkeypatch):

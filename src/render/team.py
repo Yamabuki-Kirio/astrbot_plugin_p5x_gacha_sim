@@ -27,11 +27,22 @@ def team_rows(entries):
         character = next((e for e in group if e.item.id.startswith('char:')), None)
         return (character is None, -(character.item.rarity if character else max(e.item.rarity for e in group)),
                 character.item.name if character else owner)
-    ordered = []
+    rows, row = [], []
     for owner, group in sorted(groups.items(), key=group_key):
         group.sort(key=lambda e:(not e.item.id.startswith('char:'), -e.item.rarity, e.item.name, e.item.id))
-        ordered.extend(group)
-    return tuple(tuple(ordered[n:n+COLUMNS]) for n in range(0, len(ordered), COLUMNS))
+        if row and len(row) + len(group) > COLUMNS:
+            rows.append(tuple(row))
+            row = []
+        while len(group) > COLUMNS:
+            rows.append(tuple(group[:COLUMNS]))
+            group = group[COLUMNS:]
+        row.extend(group)
+        if len(row) == COLUMNS:
+            rows.append(tuple(row))
+            row = []
+    if row:
+        rows.append(tuple(row))
+    return tuple(rows)
 
 
 def team_pages(entries):
@@ -106,6 +117,30 @@ def _owner_character(item, registry):
     # 部分特殊版本没有重复填写属性/职业，沿用同代号基础角色的数据。
     code = item.id.partition(':')[2].split('-weapon', 1)[0].split('·', 1)[0]
     return registry.item('char:' + code) or owner
+
+
+def _asset_icon(renderer, path, box):
+    if not path.is_file():
+        return None
+    source = renderer._source_art(path)
+    bounds = source.getchannel('A').getbbox()
+    if bounds:
+        source = source.crop(bounds)
+    return ImageOps.contain(source, box, Image.Resampling.LANCZOS)
+
+
+def _element_icons(renderer, owner, size=50):
+    if not owner or not owner.element:
+        return ()
+    names = [part.strip() for part in owner.element.split('/') if part.strip()]
+    icon_size = size if len(names) == 1 else round(size * .72)
+    icons = []
+    for name in names[:2]:
+        icon = _asset_icon(renderer, renderer.assets / 'element_icons' / f'{name}.png',
+                           (icon_size, icon_size))
+        if icon:
+            icons.append(icon)
+    return tuple(icons)
 
 
 def entry_owner_id(item):
@@ -220,16 +255,12 @@ def _team_card(renderer, entry, registry):
     card.alpha_composite(overlay)
 
     owner = _owner_character(entry.item, registry)
-    if owner and owner.element:
-        key = owner.element.replace('/', '_')
-        path = renderer.assets / 'element_icons' / f'{key}.png'
-        if path.is_file():
-            source = renderer._source_art(path)
-            icon = ImageOps.contain(source.crop(source.getchannel('A').getbbox()),
-                                    (56, 56), Image.Resampling.LANCZOS)
-            card.alpha_composite(icon, (28, footer_y + 6 + (56 - icon.height) // 2))
-    progress = _progress_icon(renderer, entry, size=56)
-    card.alpha_composite(progress, (CARD_BODY_W - 58, footer_y + 6))
+    icon_x = 24
+    for icon in _element_icons(renderer, owner, size=50):
+        card.alpha_composite(icon, (icon_x, footer_y + 8 + (50 - icon.height) // 2))
+        icon_x += icon.width + 4
+    progress = _progress_icon(renderer, entry, size=62)
+    card.alpha_composite(progress, (CARD_BODY_W - 66, footer_y + 3))
 
     draw = ImageDraw.Draw(card)
     level = 100 if entry.maxed else 80

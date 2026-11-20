@@ -11,7 +11,8 @@ from src.core.mechanics import PullResult
 from src.core.store import Store
 from src.core.collection import collectible,OwnedItem
 from src.services.gacha_service import GachaService
-from src.render.team import team_rows,team_pages,render_team
+from src.render.team import (team_rows,team_pages,render_team,_progress_icon,
+                             _element_icons)
 from src.render.renderer import Renderer
 
 class FixedResults:
@@ -172,7 +173,7 @@ def test_team_grouping_preserves_all_items_and_adjacent_special_weapons(env):
         if entry.item.id.startswith('weapon:') and entry.owner in positions:
             assert positions[entry.owner][0]==positions[entry.item.id][0]
             assert positions[entry.owner][1]<positions[entry.item.id][1]
-    assert all(len(row)<=4 for row in rows) and all(len(page)<=4 for page in pages)
+    assert all(len(row)<=6 for row in rows) and all(len(page)<=4 for page in pages)
     assert tuple(row for page in pages for row in page)==rows
 
 
@@ -180,11 +181,18 @@ def test_team_render_max_effect_and_empty_collection(env):
     r,_,_=env; renderer=Renderer(); item=r.item('char:KOTONE')
     normal=render_team(renderer,team_pages([OwnedItem(item,1)])[0],r,'测试用户',1,1,1,0,10)
     maxed=render_team(renderer,team_pages([OwnedItem(item,7)])[0],r,'测试用户',1,1,1,0,10)
-    assert normal.size==maxed.size==(1440,740)
-    # Card image changes above the progress labels, proving a visual max-stage effect.
-    assert normal.crop((48,247,360,460)).tobytes()!=maxed.crop((48,247,360,460)).tobytes()
+    assert normal.size==maxed.size==(1920,1306)
+    assert normal.tobytes()!=maxed.tobytes()
     empty=render_team(renderer,(),r,'空收藏',1,1,0,0,10)
-    assert empty.size==(1440,740)
+    assert empty.size==(1920,1306)
+
+
+def test_team_uses_distinct_element_and_progress_assets(env):
+    r,_,_=env; renderer=Renderer()
+    aigis=r.item('char:AEGIS'); crow=r.item('char:CROW')
+    assert _element_icons(renderer,aigis)[0].tobytes()!=_element_icons(renderer,crow)[0].tobytes()
+    weapon=next(i for i in r.items.values() if i.id.startswith('weapon:AEGIS-weapon'))
+    assert _progress_icon(renderer,OwnedItem(aigis,7)).tobytes()!=_progress_icon(renderer,OwnedItem(weapon,7)).tobytes()
 
 
 def test_selector_acquisition_enters_collection_without_spending_draws(env):

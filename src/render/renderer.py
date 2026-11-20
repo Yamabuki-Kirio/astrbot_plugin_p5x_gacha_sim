@@ -619,23 +619,41 @@ class Renderer:
         with Image.open(path) as source:
             art = source.convert("RGBA")
         w, h = art.size
-        seam = [(w*.64,0),(w*.64,h*.22),(w*.48,h*.34),
-                (w*.40,h*.55),(w*.25,h)]
-        left = Image.new("L", art.size)
-        ImageDraw.Draw(left).polygon([(0,0),*seam,(0,h)],fill=255)
-        tl,tr,br,bl = geometry.quad
-        # 两张脸分别占上、下半区，适当收缩尺度并右移居中，避免双子脸部与帽檐贴左被裁。
-        factor = geometry.width*.80/(w*.17)
-        for mask, face, target_y in ((left,(.245,.155),.39),
-                                    (ImageOps.invert(left),(.555,.385),.68)):
+        # 精确切分芮丝汀娜（左上）与卡萝莉娜（右下）：
+        # 保留卡萝莉娜完整警棍在其图层内，并剔除警棍右侧悬空举起的背手，避免叠到芮丝汀娜面部或胸口。
+        caroline_poly = [
+            (w * 0.67, h * 0.13),
+            (w * 0.69, h * 0.13),
+            (w * 0.68, h * 0.21),
+            (w, h * 0.24),
+            (w, h),
+            (w * 0.14, h),
+            (w * 0.14, h * 0.56),
+            (w * 0.31, h * 0.32),
+            (w * 0.42, h * 0.25),
+        ]
+        caroline_mask = Image.new("L", art.size, 0)
+        ImageDraw.Draw(caroline_mask).polygon(caroline_poly, fill=255)
+        justine_mask = ImageOps.invert(caroline_mask)
+        ImageDraw.Draw(justine_mask).rectangle((w * 0.65, 0, w, h * 0.25), fill=0)
+
+        tl, tr, br, bl = geometry.quad
+        # 同时受卡宽与卡高约束：十连窄槽与单抽宽槽下两人都能完整居中且互不遮脸。
+        factor = min(geometry.width * 0.64 / (w * 0.17), geometry.height * 0.96 / h)
+        for mask, face, target_y in (
+            (justine_mask, (0.285, 0.145), 0.355),
+            (caroline_mask, (0.585, 0.365), 0.655),
+        ):
             figure = art.copy()
-            figure.putalpha(ImageChops.multiply(art.getchannel("A"),mask))
-            figure = figure.resize((max(1,round(w*factor)),max(1,round(h*factor))),
-                                   Image.Resampling.LANCZOS)
-            lane_x = (tl[0]+tr[0])/2+(bl[0]-tl[0])*target_y
-            x = lane_x-w*face[0]*factor
-            y = tl[1]+geometry.height*target_y-h*face[1]*factor
-            canvas.alpha_composite(figure,(round(x-offset[0]),round(y-offset[1])))
+            figure.putalpha(ImageChops.multiply(art.getchannel("A"), mask))
+            figure = figure.resize(
+                (max(1, round(w * factor)), max(1, round(h * factor))),
+                Image.Resampling.LANCZOS,
+            )
+            lane_x = (tl[0] + tr[0]) / 2 + (bl[0] - tl[0]) * target_y
+            x = lane_x - w * face[0] * factor
+            y = tl[1] + geometry.height * target_y - h * face[1] * factor
+            canvas.alpha_composite(figure, (round(x - offset[0]), round(y - offset[1])))
 
     def art_layer(self, result: PullResult, geometry: CardGeometry, scale: float, slot: int = 0
                   ) -> tuple[Image.Image, tuple[int, int]] | None:
